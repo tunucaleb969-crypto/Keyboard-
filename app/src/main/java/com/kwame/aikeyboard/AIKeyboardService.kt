@@ -24,6 +24,11 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private val debounceHandler = Handler(Looper.getMainLooper())
     private var capsOn = false
 
+    private lateinit var wordBtn1: Button
+    private lateinit var wordBtn2: Button
+    private lateinit var wordBtn3: Button
+    private val wordButtons by lazy { listOf(wordBtn1, wordBtn2, wordBtn3) }
+
     private val aiClient: AIClient
         get() = AIClient(Prefs.getApiKey(this))
 
@@ -33,6 +38,13 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         keyboard = Keyboard(this, R.xml.keyboard_qwerty)
         keyboardView.keyboard = keyboard
         keyboardView.setOnKeyboardActionListener(this)
+
+        wordBtn1 = root.findViewById(R.id.wordSuggest1)
+        wordBtn2 = root.findViewById(R.id.wordSuggest2)
+        wordBtn3 = root.findViewById(R.id.wordSuggest3)
+        wordButtons.forEach { btn ->
+            btn.setOnClickListener { insertSuggestedWord(btn.text.toString()) }
+        }
 
         wireToneButton(root, R.id.btnToneProfessional, "professional")
         wireToneButton(root, R.id.btnToneFriendly, "friendly")
@@ -91,6 +103,34 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         currentInputConnection?.commitText(first, 1)
     }
 
+    /** Grabs the word currently being typed (after the last space) and shows matching suggestions. */
+    private fun updateWordSuggestions() {
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(40, 0)?.toString().orEmpty()
+        val currentWord = before.substringAfterLast(" ").substringAfterLast("\n")
+
+        val matches = WordSuggester.suggest(currentWord)
+        wordButtons.forEachIndexed { index, btn ->
+            val word = matches.getOrNull(index)
+            if (word != null) {
+                btn.text = word
+                btn.visibility = View.VISIBLE
+            } else {
+                btn.visibility = View.GONE
+            }
+        }
+    }
+
+    /** Replaces the word currently being typed with the tapped suggestion. */
+    private fun insertSuggestedWord(word: String) {
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(40, 0)?.toString().orEmpty()
+        val currentWord = before.substringAfterLast(" ").substringAfterLast("\n")
+        ic.deleteSurroundingText(currentWord.length, 0)
+        ic.commitText("$word ", 1)
+        wordButtons.forEach { it.visibility = View.GONE }
+    }
+
     private fun scheduleLiveCheck() {
         pendingSuggestJob?.cancel()
         debounceHandler.removeCallbacksAndMessages(null)
@@ -107,22 +147,30 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
         val ic: InputConnection = currentInputConnection ?: return
         when (primaryCode) {
-            Keyboard.KEYCODE_DELETE -> ic.deleteSurroundingText(1, 0)
+            Keyboard.KEYCODE_DELETE -> {
+                ic.deleteSurroundingText(1, 0)
+                updateWordSuggestions()
+            }
             -1 -> {
                 capsOn = !capsOn
                 keyboard.isShifted = capsOn
                 keyboardView.invalidateAllKeys()
             }
             -2 -> { /* symbols toggle — extend with a second Keyboard xml for numbers/symbols */ }
-            10 -> ic.commitText("\n", 1)
+            10 -> {
+                ic.commitText("\n", 1)
+                wordButtons.forEach { it.visibility = View.GONE }
+            }
             32 -> {
                 ic.commitText(" ", 1)
+                wordButtons.forEach { it.visibility = View.GONE }
                 scheduleLiveCheck()
             }
             else -> {
                 var code = primaryCode.toChar()
                 if (capsOn) code = code.uppercaseChar()
                 ic.commitText(code.toString(), 1)
+                updateWordSuggestions()
             }
         }
     }
