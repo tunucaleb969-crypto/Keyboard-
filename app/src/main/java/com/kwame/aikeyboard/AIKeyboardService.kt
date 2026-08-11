@@ -1,4 +1,4 @@
-package com.kwame.aikeyboard
+            package com.kwame.aikeyboard
 
 import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
@@ -51,6 +51,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         wireToneButton(root, R.id.btnToneCasual, "casual")
         wireToneButton(root, R.id.btnToneFormal, "formal")
         wireToneButton(root, R.id.btnToneFunny, "funny")
+        wireToneButton(root, R.id.btnToneFlirty, "flirty")
 
         root.findViewById<Button>(R.id.btnFixGrammar).setOnClickListener {
             runAiOnFullText("grammar")
@@ -103,7 +104,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         currentInputConnection?.commitText(first, 1)
     }
 
-    /** Grabs the word currently being typed (after the last space) and shows matching suggestions. */
     private fun updateWordSuggestions() {
         val ic = currentInputConnection ?: return
         val before = ic.getTextBeforeCursor(40, 0)?.toString().orEmpty()
@@ -121,7 +121,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
     }
 
-    /** Replaces the word currently being typed with the tapped suggestion. */
     private fun insertSuggestedWord(word: String) {
         val ic = currentInputConnection ?: return
         val before = ic.getTextBeforeCursor(40, 0)?.toString().orEmpty()
