@@ -66,6 +66,11 @@
                 android:text="Funny" />
 
             <Button
+                android:id="@+id/btnToneFlirty"
+                style="@style/AiChip"
+                android:text="Flirty" />
+
+            <Button
                 android:id="@+id/btnSuggestReply"
                 style="@style/AiChip"
                 android:text="💬 Reply" />
