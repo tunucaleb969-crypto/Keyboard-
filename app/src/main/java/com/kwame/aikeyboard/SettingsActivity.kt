@@ -1,0 +1,34 @@
+package com.kwame.aikeyboard
+
+import android.content.Intent
+import android.os.Bundle
+import android.provider.Settings
+import android.view.inputmethod.InputMethodManager
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+
+class SettingsActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_settings)
+
+        val editKey = findViewById<EditText>(R.id.editApiKey)
+        editKey.setText(Prefs.getApiKey(this))
+
+        findViewById<Button>(R.id.btnEnableKeyboard).setOnClickListener {
+            startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+        }
+
+        findViewById<Button>(R.id.btnChooseKeyboard).setOnClickListener {
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showInputMethodPicker()
+        }
+
+        findViewById<Button>(R.id.btnSaveKey).setOnClickListener {
+            Prefs.setApiKey(this, editKey.text.toString().trim())
+            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
