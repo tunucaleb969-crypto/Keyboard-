@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#1E1E1E">
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/suggestionStrip"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp">
+
+            <Button
+                android:id="@+id/btnFixGrammar"
+                style="@style/AiChip"
+                android:text="✓ Fix" />
+
+            <Button
+                android:id="@+id/btnToneProfessional"
+                style="@style/AiChip"
+                android:text="Professional" />
+
+            <Button
+                android:id="@+id/btnToneFriendly"
+                style="@style/AiChip"
+                android:text="Friendly" />
+
+            <Button
+                android:id="@+id/btnToneCasual"
+                style="@style/AiChip"
+                android:text="Casual" />
+
+            <Button
+                android:id="@+id/btnToneFormal"
+                style="@style/AiChip"
+                android:text="Formal" />
+
+            <Button
+                android:id="@+id/btnToneFunny"
+                style="@style/AiChip"
+                android:text="Funny" />
+
+            <Button
+                android:id="@+id/btnSuggestReply"
+                style="@style/AiChip"
+                android:text="💬 Reply" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <android.inputmethodservice.KeyboardView
+        android:id="@+id/keyboardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:keyBackground="@drawable/key_background"
+        android:keyTextColor="#FFFFFF"
+        android:keyTextSize="18sp"
+        android:background="#1E1E1E" />
+
+</LinearLayout>
