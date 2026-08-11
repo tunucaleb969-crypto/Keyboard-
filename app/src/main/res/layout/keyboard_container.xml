@@ -5,6 +5,22 @@
     android:orientation="vertical"
     android:background="#1E1E1E">
 
+    <LinearLayout
+        android:id="@+id/wordSuggestBar"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#161616"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
+
+        <Button android:id="@+id/wordSuggest1" style="@style/AiChip" android:text="" android:visibility="gone" />
+        <Button android:id="@+id/wordSuggest2" style="@style/AiChip" android:text="" android:visibility="gone" />
+        <Button android:id="@+id/wordSuggest3" style="@style/AiChip" android:text="" android:visibility="gone" />
+
+    </LinearLayout>
+
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="44dp"
