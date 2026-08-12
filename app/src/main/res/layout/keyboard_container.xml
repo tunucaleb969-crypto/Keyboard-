@@ -44,6 +44,39 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Clipboard history panel: hidden until the clipboard button is tapped -->
+    <LinearLayout
+        android:id="@+id/clipboardPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#1C1C3A"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Clipboard history"
+            android:textColor="#AAAAAA"
+            android:textSize="12sp"
+            android:paddingBottom="4dp" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/clipboardList"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/wordSuggestBar"
         android:layout_width="match_parent"
@@ -59,9 +92,13 @@
         <Button android:id="@+id/wordSuggest3" style="@style/AiChip" android:text="" android:visibility="gone" />
 
         <Button
+            android:id="@+id/btnClipboard"
+            style="@style/AiChip"
+            android:text="📋" />
+
+        <Button
             android:id="@+id/btnMic"
             style="@style/AiChip"
-            android:layout_gravity="end"
             android:text="🎤" />
 
     </LinearLayout>
