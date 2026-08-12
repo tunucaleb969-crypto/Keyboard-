@@ -44,7 +44,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Clipboard history panel: hidden until the clipboard button is tapped -->
     <LinearLayout
         android:id="@+id/clipboardPanel"
         android:layout_width="match_parent"
@@ -77,6 +76,24 @@
 
     </LinearLayout>
 
+    <!-- Emoji picker panel: hidden until the emoji button is tapped. Uses a simple
+         wrapping GridLayout (no external library needed). -->
+    <ScrollView
+        android:id="@+id/emojiPanel"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:background="#1C1C3A"
+        android:visibility="gone">
+
+        <GridLayout
+            android:id="@+id/emojiGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="8"
+            android:padding="4dp" />
+
+    </ScrollView>
+
     <LinearLayout
         android:id="@+id/wordSuggestBar"
         android:layout_width="match_parent"
@@ -90,6 +107,12 @@
         <Button android:id="@+id/wordSuggest1" style="@style/AiChip" android:text="" android:visibility="gone" />
         <Button android:id="@+id/wordSuggest2" style="@style/AiChip" android:text="" android:visibility="gone" />
         <Button android:id="@+id/wordSuggest3" style="@style/AiChip" android:text="" android:visibility="gone" />
+        <Button android:id="@+id/emojiSuggest" style="@style/AiChip" android:text="" android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnEmoji"
+            style="@style/AiChip"
+            android:text="😊" />
 
         <Button
             android:id="@+id/btnClipboard"
