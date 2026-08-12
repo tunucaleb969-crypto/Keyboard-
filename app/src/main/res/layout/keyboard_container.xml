@@ -5,6 +5,46 @@
     android:orientation="vertical"
     android:background="#14142B">
 
+    <!-- AI preview panel: hidden until a tone/fix result comes back -->
+    <LinearLayout
+        android:id="@+id/aiPreviewPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#1C1C3A"
+        android:padding="10dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/aiPreviewText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="4"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:background="#14142B"
+            android:padding="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:gravity="end">
+
+            <Button
+                android:id="@+id/btnPreviewCancel"
+                style="@style/AiChip"
+                android:text="✕ Cancel" />
+
+            <Button
+                android:id="@+id/btnPreviewAccept"
+                style="@style/AiChip"
+                android:text="✓ Use this" />
+
+        </LinearLayout>
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/wordSuggestBar"
         android:layout_width="match_parent"
