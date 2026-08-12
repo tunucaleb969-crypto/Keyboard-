@@ -1,12 +1,17 @@
 package com.kwame.aikeyboard
 
+import android.content.Context
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
 import android.inputmethodservice.KeyboardView
+import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.widget.Button
@@ -28,6 +33,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private val debounceHandler = Handler(Looper.getMainLooper())
     private var capsOn = false
     private var shiftLocked = false
+    private var justAutoCapped = false
 
     private lateinit var wordBtn1: Button
     private lateinit var wordBtn2: Button
@@ -46,10 +52,16 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private val aiClient: AIClient
         get() = AIClient(Prefs.getApiKey(this))
 
+    private val audioManager by lazy { getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    private val vibrator by lazy { getSystemService(Context.VIBRATOR_SERVICE) as Vibrator }
+
     override fun onCreateInputView(): View {
         val root = layoutInflater.inflate(R.layout.keyboard_container, null)
         keyboardView = root.findViewById(R.id.keyboardView)
         keyboardView.isPreviewEnabled = false
+
+        applyKeyboardHeight()
+
         qwertyKeyboard = Keyboard(this, R.xml.keyboard_qwerty)
         symbolsKeyboard = Keyboard(this, R.xml.keyboard_symbols)
         onSymbols = false
@@ -87,10 +99,33 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             runAiOnFullText("reply", replaceText = false)
         }
 
+        // Fresh keyboard session -> if auto-capitalize is on, start ready for a capital letter.
+        if (Prefs.getAutoCapitalize(this)) {
+            capsOn = true
+            justAutoCapped = true
+            qwertyKeyboard.isShifted = true
+        }
+
         return root
     }
 
-    /** Launches the invisible VoiceInputActivity, which shows Android's built-in speech popup. */
+    private fun applyKeyboardHeight() {
+        val heightDp = when (Prefs.getKeyboardHeight(this)) {
+            0 -> 38
+            2 -> 62
+            else -> 50
+        }
+        val scale = resources.displayMetrics.density
+        val heightPx = (heightDp * scale).toInt()
+        val params = keyboardView.layoutParams ?: ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        keyboardView.layoutParams = params
+        // KeyboardView derives row height from the XML's keyHeight (%p of screen),
+        // so on smaller/larger settings we additionally scale text size for a visible difference.
+        keyboardView.setKeyTextSize((14 + Prefs.getKeyboardHeight(this) * 4).toFloat())
+    }
+
     private fun startVoiceInput() {
         VoiceInputActivity.callback = { spokenText ->
             currentInputConnection?.commitText("$spokenText ", 1)
@@ -198,8 +233,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             val ic = currentInputConnection ?: return@postDelayed
             val before = ic.getTextBeforeCursor(200, 0)?.toString().orEmpty()
             if (before.trim().split(" ").size >= 3 && Prefs.getApiKey(this).isNotBlank()) {
-                // Real build: call aiClient.run("grammar", before) here and surface a
-                // non-destructive suggestion chip instead of auto-replacing.
+                // Real build: call aiClient.run("grammar", before) here.
             }
         }, 900)
     }
@@ -218,8 +252,36 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         keyboardView.invalidateAllKeys()
     }
 
+    private fun playKeyFeedback() {
+        if (Prefs.getSoundEnabled(this)) {
+            audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD)
+        }
+        if (Prefs.getVibrateEnabled(this)) {
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                vibrator.vibrate(VibrationEffect.createOneShot(12, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(12)
+            }
+        }
+    }
+
+    /** Auto-capitalizes after a sentence-ending punctuation + space, if the setting is on. */
+    private fun maybeAutoCapitalize(ic: InputConnection) {
+        if (!Prefs.getAutoCapitalize(this) || onSymbols) return
+        val before = ic.getTextBeforeCursor(3, 0)?.toString().orEmpty()
+        val endsSentence = before.endsWith(". ") || before.endsWith("! ") || before.endsWith("? ") || before.trim().isEmpty()
+        if (endsSentence && !capsOn) {
+            capsOn = true
+            justAutoCapped = true
+            qwertyKeyboard.isShifted = true
+            keyboardView.invalidateAllKeys()
+        }
+    }
+
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
         val ic: InputConnection = currentInputConnection ?: return
+        playKeyFeedback()
         when (primaryCode) {
             Keyboard.KEYCODE_DELETE -> {
                 ic.deleteSurroundingText(1, 0)
@@ -233,6 +295,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                     capsOn = true
                     shiftLocked = false
                 }
+                justAutoCapped = false
                 qwertyKeyboard.isShifted = capsOn
                 keyboardView.invalidateAllKeys()
             }
@@ -240,18 +303,25 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             10 -> {
                 ic.commitText("\n", 1)
                 wordButtons.forEach { it.visibility = View.GONE }
+                maybeAutoCapitalize(ic)
             }
             32 -> {
                 ic.commitText(" ", 1)
                 wordButtons.forEach { it.visibility = View.GONE }
                 scheduleLiveCheck()
+                maybeAutoCapitalize(ic)
             }
             else -> {
                 var code = primaryCode.toChar()
                 if (capsOn && !onSymbols) code = code.uppercaseChar()
                 ic.commitText(code.toString(), 1)
                 updateWordSuggestions()
-                autoUnshift()
+                if (justAutoCapped) {
+                    justAutoCapped = false
+                    autoUnshift()
+                } else {
+                    autoUnshift()
+                }
             }
         }
     }
