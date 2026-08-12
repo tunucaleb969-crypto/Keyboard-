@@ -32,20 +32,19 @@ class AIClient(private val apiKey: String) {
         if (text.isBlank()) return@withContext Result.failure(IllegalArgumentException("Empty text"))
         try {
             val body = JSONObject().apply {
-                put("model", "claude-sonnet-4-6")
-                put("max_tokens", 400)
+                put("model", "meta/llama-3.1-8b-instruct")
                 put("messages", JSONArray().put(
                     JSONObject().apply {
                         put("role", "user")
                         put("content", buildPrompt(task, text))
                     }
                 ))
+                put("max_tokens", 400)
             }
 
             val request = Request.Builder()
-                .url("https://api.anthropic.com/v1/messages")
-                .addHeader("x-api-key", apiKey)
-                .addHeader("anthropic-version", "2023-06-01")
+                .url("https://integrate.api.nvidia.com/v1/chat/completions")
+                .addHeader("Authorization", "Bearer $apiKey")
                 .addHeader("content-type", "application/json")
                 .post(body.toString().toRequestBody(jsonMedia))
                 .build()
@@ -56,15 +55,11 @@ class AIClient(private val apiKey: String) {
                     return@withContext Result.failure(Exception("API error ${response.code}: $raw"))
                 }
                 val json = JSONObject(raw)
-                val content = json.getJSONArray("content")
-                val textOut = StringBuilder()
-                for (i in 0 until content.length()) {
-                    val block = content.getJSONObject(i)
-                    if (block.optString("type") == "text") {
-                        textOut.append(block.optString("text"))
-                    }
-                }
-                Result.success(textOut.toString().trim())
+                val message = json.getJSONArray("choices")
+                    .getJSONObject(0)
+                    .getJSONObject("message")
+                    .getString("content")
+                Result.success(message.trim())
             }
         } catch (e: Exception) {
             Result.failure(e)
