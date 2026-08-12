@@ -1,7 +1,11 @@
 package com.kwame.aikeyboard
 
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
@@ -61,6 +65,21 @@ class SettingsActivity : AppCompatActivity() {
                 else -> 1
             }
             Prefs.setKeyboardHeight(this, value)
+        }
+
+        findViewById<Button>(R.id.btnTestVibrate).setOnClickListener {
+            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            try {
+                if (Build.VERSION.SDK_INT >= 26) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(200)
+                }
+                Toast.makeText(this, "Vibration triggered — did you feel it?", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(this, "Vibration error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 }
