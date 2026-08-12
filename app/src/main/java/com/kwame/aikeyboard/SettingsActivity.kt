@@ -27,7 +27,9 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnSaveKey).setOnClickListener {
-            Prefs.setApiKey(this, editKey.text.toString().trim())
+            val cleanKey = editKey.text.toString().replace(Regex("\\s"), "")
+            Prefs.setApiKey(this, cleanKey)
+            editKey.setText(cleanKey)
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
         }
     }
