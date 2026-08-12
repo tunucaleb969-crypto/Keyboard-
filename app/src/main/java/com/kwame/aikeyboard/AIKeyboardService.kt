@@ -295,9 +295,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             }
         }
 
-        // Check the last completed word (before the trailing space) for an emoji match.
         val lastWord = before.trim().substringAfterLast(" ")
-        val emoji = EmojiSuggester.suggestForWord(lastWord)
+        val emoji = if (lastWord.isNotBlank()) EmojiSuggester.suggestForWord(lastWord) else null
         if (emoji != null && before.endsWith(" ")) {
             emojiSuggestBtn.text = emoji
             emojiSuggestBtn.visibility = View.VISIBLE
@@ -368,6 +367,14 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     }
 
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
+        try {
+            onKeyInner(primaryCode, keyCodes)
+        } catch (e: Exception) {
+            Toast.makeText(this, "CRASH: ${e.javaClass.simpleName}: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun onKeyInner(primaryCode: Int, keyCodes: IntArray?) {
         val ic: InputConnection = currentInputConnection ?: return
         playKeyFeedback()
         when (primaryCode) {
