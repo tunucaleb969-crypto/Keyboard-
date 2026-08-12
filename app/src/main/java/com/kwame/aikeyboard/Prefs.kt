@@ -9,6 +9,9 @@ object Prefs {
     private const val KEY_VIBRATE = "key_vibrate"
     private const val KEY_AUTOCAP = "auto_capitalize"
     private const val KEY_HEIGHT = "keyboard_height"
+    private const val KEY_CLIPS = "clip_history"
+    private const val CLIP_DIVIDER = "\u0001"
+    private const val MAX_CLIPS = 8
 
     fun getApiKey(context: Context): String =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_API, "") ?: ""
@@ -39,11 +42,29 @@ object Prefs {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_AUTOCAP, value).apply()
     }
 
-    /** 0 = small, 1 = medium (default), 2 = large */
     fun getKeyboardHeight(context: Context): Int =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getInt(KEY_HEIGHT, 1)
 
     fun setKeyboardHeight(context: Context, value: Int) {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putInt(KEY_HEIGHT, value).apply()
+    }
+
+    fun getClipHistory(context: Context): List<String> {
+        val raw = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_CLIPS, "") ?: ""
+        return if (raw.isBlank()) emptyList() else raw.split(CLIP_DIVIDER).filter { it.isNotBlank() }
+    }
+
+    fun addClip(context: Context, text: String) {
+        if (text.isBlank()) return
+        val current = getClipHistory(context).toMutableList()
+        current.remove(text)
+        current.add(0, text)
+        val trimmed = current.take(MAX_CLIPS)
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+            .edit().putString(KEY_CLIPS, trimmed.joinToString(CLIP_DIVIDER)).apply()
+    }
+
+    fun clearClips(context: Context) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().remove(KEY_CLIPS).apply()
     }
 }
