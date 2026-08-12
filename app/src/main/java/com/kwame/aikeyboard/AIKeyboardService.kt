@@ -1,4 +1,5 @@
-        package com.kwame.aikeyboard
+        
+    package com.kwame.aikeyboard
 
 import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
@@ -18,7 +19,9 @@ import kotlinx.coroutines.launch
 class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionListener {
 
     private lateinit var keyboardView: KeyboardView
-    private lateinit var keyboard: Keyboard
+    private lateinit var qwertyKeyboard: Keyboard
+    private lateinit var symbolsKeyboard: Keyboard
+    private var onSymbols = false
     private val scope = CoroutineScope(Dispatchers.Main)
     private var pendingSuggestJob: Job? = null
     private val debounceHandler = Handler(Looper.getMainLooper())
@@ -37,8 +40,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         val root = layoutInflater.inflate(R.layout.keyboard_container, null)
         keyboardView = root.findViewById(R.id.keyboardView)
         keyboardView.isPreviewEnabled = false
-        keyboard = Keyboard(this, R.xml.keyboard_qwerty)
-        keyboardView.keyboard = keyboard
+        qwertyKeyboard = Keyboard(this, R.xml.keyboard_qwerty)
+        symbolsKeyboard = Keyboard(this, R.xml.keyboard_symbols)
+        onSymbols = false
+        keyboardView.keyboard = qwertyKeyboard
         keyboardView.setOnKeyboardActionListener(this)
 
         wordBtn1 = root.findViewById(R.id.wordSuggest1)
@@ -145,13 +150,18 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }, 900)
     }
 
-    /** Turns off auto-shift after one letter is typed, unless the user double-tapped to lock it. */
     private fun autoUnshift() {
         if (capsOn && !shiftLocked) {
             capsOn = false
-            keyboard.isShifted = false
+            qwertyKeyboard.isShifted = false
             keyboardView.invalidateAllKeys()
         }
+    }
+
+    private fun toggleSymbols() {
+        onSymbols = !onSymbols
+        keyboardView.keyboard = if (onSymbols) symbolsKeyboard else qwertyKeyboard
+        keyboardView.invalidateAllKeys()
     }
 
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
@@ -162,17 +172,17 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 updateWordSuggestions()
             }
             -1 -> {
+                if (onSymbols) return
                 if (capsOn) {
-                    // second tap while already shifted -> lock caps
                     shiftLocked = !shiftLocked
                 } else {
                     capsOn = true
                     shiftLocked = false
                 }
-                keyboard.isShifted = capsOn
+                qwertyKeyboard.isShifted = capsOn
                 keyboardView.invalidateAllKeys()
             }
-            -2 -> { /* symbols toggle — added in the next update */ }
+            -2 -> toggleSymbols()
             10 -> {
                 ic.commitText("\n", 1)
                 wordButtons.forEach { it.visibility = View.GONE }
@@ -184,7 +194,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             }
             else -> {
                 var code = primaryCode.toChar()
-                if (capsOn) code = code.uppercaseChar()
+                if (capsOn && !onSymbols) code = code.uppercaseChar()
                 ic.commitText(code.toString(), 1)
                 updateWordSuggestions()
                 autoUnshift()
@@ -210,4 +220,4 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         super.onDestroy()
         debounceHandler.removeCallbacksAndMessages(null)
     }
-}    
+}
