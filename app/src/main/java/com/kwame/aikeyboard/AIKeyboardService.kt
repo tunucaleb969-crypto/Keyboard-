@@ -1,5 +1,7 @@
 package com.kwame.aikeyboard
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
@@ -11,10 +13,10 @@ import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +46,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private lateinit var previewText: TextView
     private lateinit var btnPreviewAccept: Button
     private lateinit var btnPreviewCancel: Button
+
+    private lateinit var clipboardPanel: View
+    private lateinit var clipboardList: LinearLayout
+    private lateinit var clipboardManager: ClipboardManager
 
     private var pendingBefore: String = ""
     private var pendingAfter: String = ""
@@ -77,6 +83,20 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
 
         root.findViewById<Button>(R.id.btnMic).setOnClickListener { startVoiceInput() }
 
+        clipboardPanel = root.findViewById(R.id.clipboardPanel)
+        clipboardList = root.findViewById(R.id.clipboardList)
+        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        root.findViewById<Button>(R.id.btnClipboard).setOnClickListener { toggleClipboardPanel() }
+
+        clipboardManager.addPrimaryClipChangedListener {
+            val text = clipboardManager.primaryClip
+                ?.takeIf { it.itemCount > 0 }
+                ?.getItemAt(0)?.text?.toString()
+            if (!text.isNullOrBlank()) {
+                Prefs.addClip(this, text)
+            }
+        }
+
         previewPanel = root.findViewById(R.id.aiPreviewPanel)
         previewText = root.findViewById(R.id.aiPreviewText)
         btnPreviewAccept = root.findViewById(R.id.btnPreviewAccept)
@@ -108,11 +128,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         return root
     }
 
-    /**
-     * Scales the keyboard's overall row height by adjusting the view's height layout param
-     * as a multiplier applied via padding, since KeyboardView computes row height itself
-     * from the XML's keyHeight="%p" at layout time (there's no direct setter for it).
-     */
     private fun applyKeyboardHeight() {
         val verticalPadding = when (Prefs.getKeyboardHeight(this)) {
             0 -> 0
@@ -120,6 +135,40 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             else -> (6 * resources.displayMetrics.density).toInt()
         }
         keyboardView.setPadding(0, verticalPadding, 0, verticalPadding)
+    }
+
+    private fun toggleClipboardPanel() {
+        if (clipboardPanel.visibility == View.VISIBLE) {
+            clipboardPanel.visibility = View.GONE
+            return
+        }
+        renderClipboardList()
+        clipboardPanel.visibility = View.VISIBLE
+    }
+
+    private fun renderClipboardList() {
+        clipboardList.removeAllViews()
+        val clips = Prefs.getClipHistory(this)
+        if (clips.isEmpty()) {
+            val empty = TextView(this).apply {
+                text = "Nothing copied yet"
+                setTextColor(0xFFAAAAAA.toInt())
+                textSize = 13f
+                setPadding(8, 8, 8, 8)
+            }
+            clipboardList.addView(empty)
+            return
+        }
+        clips.forEach { clip ->
+            val chip = Button(this, null, 0, R.style.AiChip).apply {
+                text = if (clip.length > 24) clip.take(24) + "…" else clip
+                setOnClickListener {
+                    currentInputConnection?.commitText(clip, 1)
+                    clipboardPanel.visibility = View.GONE
+                }
+            }
+            clipboardList.addView(chip)
+        }
     }
 
     private fun startVoiceInput() {
