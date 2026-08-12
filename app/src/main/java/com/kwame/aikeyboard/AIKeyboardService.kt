@@ -1,4 +1,4 @@
-            package com.kwame.aikeyboard
+        package com.kwame.aikeyboard
 
 import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
@@ -23,6 +23,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private var pendingSuggestJob: Job? = null
     private val debounceHandler = Handler(Looper.getMainLooper())
     private var capsOn = false
+    private var shiftLocked = false
 
     private lateinit var wordBtn1: Button
     private lateinit var wordBtn2: Button
@@ -35,6 +36,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     override fun onCreateInputView(): View {
         val root = layoutInflater.inflate(R.layout.keyboard_container, null)
         keyboardView = root.findViewById(R.id.keyboardView)
+        keyboardView.isPreviewEnabled = false
         keyboard = Keyboard(this, R.xml.keyboard_qwerty)
         keyboardView.keyboard = keyboard
         keyboardView.setOnKeyboardActionListener(this)
@@ -143,6 +145,15 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }, 900)
     }
 
+    /** Turns off auto-shift after one letter is typed, unless the user double-tapped to lock it. */
+    private fun autoUnshift() {
+        if (capsOn && !shiftLocked) {
+            capsOn = false
+            keyboard.isShifted = false
+            keyboardView.invalidateAllKeys()
+        }
+    }
+
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
         val ic: InputConnection = currentInputConnection ?: return
         when (primaryCode) {
@@ -151,11 +162,17 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 updateWordSuggestions()
             }
             -1 -> {
-                capsOn = !capsOn
+                if (capsOn) {
+                    // second tap while already shifted -> lock caps
+                    shiftLocked = !shiftLocked
+                } else {
+                    capsOn = true
+                    shiftLocked = false
+                }
                 keyboard.isShifted = capsOn
                 keyboardView.invalidateAllKeys()
             }
-            -2 -> { /* symbols toggle — extend with a second Keyboard xml for numbers/symbols */ }
+            -2 -> { /* symbols toggle — added in the next update */ }
             10 -> {
                 ic.commitText("\n", 1)
                 wordButtons.forEach { it.visibility = View.GONE }
@@ -170,6 +187,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 if (capsOn) code = code.uppercaseChar()
                 ic.commitText(code.toString(), 1)
                 updateWordSuggestions()
+                autoUnshift()
             }
         }
     }
@@ -192,4 +210,4 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         super.onDestroy()
         debounceHandler.removeCallbacksAndMessages(null)
     }
-}
+}    
