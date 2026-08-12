@@ -1,4 +1,3 @@
-        
     package com.kwame.aikeyboard
 
 import android.inputmethodservice.InputMethodService
@@ -10,6 +9,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +33,16 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private lateinit var wordBtn3: Button
     private val wordButtons by lazy { listOf(wordBtn1, wordBtn2, wordBtn3) }
 
+    private lateinit var previewPanel: View
+    private lateinit var previewText: TextView
+    private lateinit var btnPreviewAccept: Button
+    private lateinit var btnPreviewCancel: Button
+
+    // Holds the pending AI result and what to do if the user accepts it.
+    private var pendingBefore: String = ""
+    private var pendingAfter: String = ""
+    private var pendingResult: String = ""
+
     private val aiClient: AIClient
         get() = AIClient(Prefs.getApiKey(this))
 
@@ -52,6 +62,14 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         wordButtons.forEach { btn ->
             btn.setOnClickListener { insertSuggestedWord(btn.text.toString()) }
         }
+
+        previewPanel = root.findViewById(R.id.aiPreviewPanel)
+        previewText = root.findViewById(R.id.aiPreviewText)
+        btnPreviewAccept = root.findViewById(R.id.btnPreviewAccept)
+        btnPreviewCancel = root.findViewById(R.id.btnPreviewCancel)
+
+        btnPreviewAccept.setOnClickListener { acceptPreview() }
+        btnPreviewCancel.setOnClickListener { hidePreview() }
 
         wireToneButton(root, R.id.btnToneProfessional, "professional")
         wireToneButton(root, R.id.btnToneFriendly, "friendly")
@@ -92,10 +110,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         scope.launch {
             aiClient.run(task, fullText).onSuccess { result ->
                 if (replaceText) {
-                    ic.beginBatchEdit()
-                    ic.deleteSurroundingText(before.length, after.length)
-                    ic.commitText(result, 1)
-                    ic.endBatchEdit()
+                    pendingBefore = before
+                    pendingAfter = after
+                    pendingResult = result
+                    showPreview(result)
                 } else {
                     showReplyOptions(result)
                 }
@@ -103,6 +121,28 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 toast("AI request failed: ${it.message}")
             }
         }
+    }
+
+    private fun showPreview(result: String) {
+        previewText.text = result
+        previewPanel.visibility = View.VISIBLE
+    }
+
+    private fun hidePreview() {
+        previewPanel.visibility = View.GONE
+        pendingBefore = ""
+        pendingAfter = ""
+        pendingResult = ""
+    }
+
+    private fun acceptPreview() {
+        val ic = currentInputConnection ?: return
+        if (pendingResult.isBlank()) return
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(pendingBefore.length, pendingAfter.length)
+        ic.commitText(pendingResult, 1)
+        ic.endBatchEdit()
+        hidePreview()
     }
 
     private fun showReplyOptions(raw: String) {
@@ -220,4 +260,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         super.onDestroy()
         debounceHandler.removeCallbacksAndMessages(null)
     }
-}
+}    
+    
+    
