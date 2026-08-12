@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:background="#14142B">
 
-    <!-- AI preview panel: hidden until a tone/fix result comes back -->
     <LinearLayout
         android:id="@+id/aiPreviewPanel"
         android:layout_width="match_parent"
@@ -58,6 +57,12 @@
         <Button android:id="@+id/wordSuggest1" style="@style/AiChip" android:text="" android:visibility="gone" />
         <Button android:id="@+id/wordSuggest2" style="@style/AiChip" android:text="" android:visibility="gone" />
         <Button android:id="@+id/wordSuggest3" style="@style/AiChip" android:text="" android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnMic"
+            style="@style/AiChip"
+            android:layout_gravity="end"
+            android:text="🎤" />
 
     </LinearLayout>
 
