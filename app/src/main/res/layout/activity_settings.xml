@@ -30,13 +30,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="3. Paste your Anthropic API key" />
+        android:text="3. Paste your NVIDIA API key" />
 
     <EditText
         android:id="@+id/editApiKey"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="sk-ant-..."
+        android:hint="nvapi-..."
         android:inputType="textPassword" />
 
     <Button
