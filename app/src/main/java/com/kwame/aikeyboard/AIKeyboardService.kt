@@ -1,5 +1,6 @@
-    package com.kwame.aikeyboard
+package com.kwame.aikeyboard
 
+import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.Keyboard
 import android.inputmethodservice.KeyboardView
@@ -38,7 +39,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private lateinit var btnPreviewAccept: Button
     private lateinit var btnPreviewCancel: Button
 
-    // Holds the pending AI result and what to do if the user accepts it.
     private var pendingBefore: String = ""
     private var pendingAfter: String = ""
     private var pendingResult: String = ""
@@ -63,6 +63,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             btn.setOnClickListener { insertSuggestedWord(btn.text.toString()) }
         }
 
+        root.findViewById<Button>(R.id.btnMic).setOnClickListener { startVoiceInput() }
+
         previewPanel = root.findViewById(R.id.aiPreviewPanel)
         previewText = root.findViewById(R.id.aiPreviewText)
         btnPreviewAccept = root.findViewById(R.id.btnPreviewAccept)
@@ -86,6 +88,18 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
 
         return root
+    }
+
+    /** Launches the invisible VoiceInputActivity, which shows Android's built-in speech popup. */
+    private fun startVoiceInput() {
+        VoiceInputActivity.callback = { spokenText ->
+            currentInputConnection?.commitText("$spokenText ", 1)
+            updateWordSuggestions()
+        }
+        val intent = Intent(this, VoiceInputActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
     }
 
     private fun wireToneButton(root: View, id: Int, tone: String) {
@@ -260,6 +274,4 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         super.onDestroy()
         debounceHandler.removeCallbacksAndMessages(null)
     }
-}    
-    
-    
+}
