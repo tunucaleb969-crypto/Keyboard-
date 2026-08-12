@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="20dp">
 
@@ -46,4 +50,67 @@
         android:layout_marginTop="8dp"
         android:text="Save key" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="Typing Preferences"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <Switch
+        android:id="@+id/switchSound"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Key click sound" />
+
+    <Switch
+        android:id="@+id/switchVibrate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Vibrate on key press" />
+
+    <Switch
+        android:id="@+id/switchAutoCap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Auto-capitalize sentences" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Keyboard height" />
+
+    <RadioGroup
+        android:id="@+id/radioHeight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/radioSmall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Small" />
+
+        <RadioButton
+            android:id="@+id/radioMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Medium" />
+
+        <RadioButton
+            android:id="@+id/radioLarge"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Large" />
+
+    </RadioGroup>
+
 </LinearLayout>
+</ScrollView>
