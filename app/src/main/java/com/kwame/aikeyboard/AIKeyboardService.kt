@@ -60,13 +60,13 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         keyboardView = root.findViewById(R.id.keyboardView)
         keyboardView.isPreviewEnabled = false
 
-        applyKeyboardHeight()
-
         qwertyKeyboard = Keyboard(this, R.xml.keyboard_qwerty)
         symbolsKeyboard = Keyboard(this, R.xml.keyboard_symbols)
         onSymbols = false
         keyboardView.keyboard = qwertyKeyboard
         keyboardView.setOnKeyboardActionListener(this)
+
+        applyKeyboardHeight()
 
         wordBtn1 = root.findViewById(R.id.wordSuggest1)
         wordBtn2 = root.findViewById(R.id.wordSuggest2)
@@ -99,7 +99,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             runAiOnFullText("reply", replaceText = false)
         }
 
-        // Fresh keyboard session -> if auto-capitalize is on, start ready for a capital letter.
         if (Prefs.getAutoCapitalize(this)) {
             capsOn = true
             justAutoCapped = true
@@ -109,21 +108,18 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         return root
     }
 
+    /**
+     * Scales the keyboard's overall row height by adjusting the view's height layout param
+     * as a multiplier applied via padding, since KeyboardView computes row height itself
+     * from the XML's keyHeight="%p" at layout time (there's no direct setter for it).
+     */
     private fun applyKeyboardHeight() {
-        val heightDp = when (Prefs.getKeyboardHeight(this)) {
-            0 -> 38
-            2 -> 62
-            else -> 50
+        val verticalPadding = when (Prefs.getKeyboardHeight(this)) {
+            0 -> 0
+            2 -> (18 * resources.displayMetrics.density).toInt()
+            else -> (6 * resources.displayMetrics.density).toInt()
         }
-        val scale = resources.displayMetrics.density
-        val heightPx = (heightDp * scale).toInt()
-        val params = keyboardView.layoutParams ?: ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        keyboardView.layoutParams = params
-        // KeyboardView derives row height from the XML's keyHeight (%p of screen),
-        // so on smaller/larger settings we additionally scale text size for a visible difference.
-        keyboardView.setKeyTextSize((14 + Prefs.getKeyboardHeight(this) * 4).toFloat())
+        keyboardView.setPadding(0, verticalPadding, 0, verticalPadding)
     }
 
     private fun startVoiceInput() {
@@ -266,7 +262,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
     }
 
-    /** Auto-capitalizes after a sentence-ending punctuation + space, if the setting is on. */
     private fun maybeAutoCapitalize(ic: InputConnection) {
         if (!Prefs.getAutoCapitalize(this) || onSymbols) return
         val before = ic.getTextBeforeCursor(3, 0)?.toString().orEmpty()
@@ -316,12 +311,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 if (capsOn && !onSymbols) code = code.uppercaseChar()
                 ic.commitText(code.toString(), 1)
                 updateWordSuggestions()
-                if (justAutoCapped) {
-                    justAutoCapped = false
-                    autoUnshift()
-                } else {
-                    autoUnshift()
-                }
+                justAutoCapped = false
+                autoUnshift()
             }
         }
     }
