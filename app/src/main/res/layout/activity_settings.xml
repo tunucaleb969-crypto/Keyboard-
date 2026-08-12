@@ -77,6 +77,13 @@
         android:layout_height="wrap_content"
         android:text="Auto-capitalize sentences" />
 
+    <Button
+        android:id="@+id/btnTestVibrate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Test vibration" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
