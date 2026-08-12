@@ -1,6 +1,5 @@
 package com.kwame.aikeyboard
 
-import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -16,6 +15,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.widget.Button
+import android.widget.GridLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -41,6 +41,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private lateinit var wordBtn2: Button
     private lateinit var wordBtn3: Button
     private val wordButtons by lazy { listOf(wordBtn1, wordBtn2, wordBtn3) }
+    private lateinit var emojiSuggestBtn: Button
 
     private lateinit var previewPanel: View
     private lateinit var previewText: TextView
@@ -50,6 +51,9 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private lateinit var clipboardPanel: View
     private lateinit var clipboardList: LinearLayout
     private lateinit var clipboardManager: ClipboardManager
+
+    private lateinit var emojiPanel: View
+    private lateinit var emojiGrid: GridLayout
 
     private var pendingBefore: String = ""
     private var pendingAfter: String = ""
@@ -81,6 +85,12 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             btn.setOnClickListener { insertSuggestedWord(btn.text.toString()) }
         }
 
+        emojiSuggestBtn = root.findViewById(R.id.emojiSuggest)
+        emojiSuggestBtn.setOnClickListener {
+            currentInputConnection?.commitText(emojiSuggestBtn.text.toString(), 1)
+            emojiSuggestBtn.visibility = View.GONE
+        }
+
         root.findViewById<Button>(R.id.btnMic).setOnClickListener { startVoiceInput() }
 
         clipboardPanel = root.findViewById(R.id.clipboardPanel)
@@ -96,6 +106,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 Prefs.addClip(this, text)
             }
         }
+
+        emojiPanel = root.findViewById(R.id.emojiPanel)
+        emojiGrid = root.findViewById(R.id.emojiGrid)
+        root.findViewById<Button>(R.id.btnEmoji).setOnClickListener { toggleEmojiPanel() }
 
         previewPanel = root.findViewById(R.id.aiPreviewPanel)
         previewText = root.findViewById(R.id.aiPreviewText)
@@ -135,6 +149,26 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             else -> (6 * resources.displayMetrics.density).toInt()
         }
         keyboardView.setPadding(0, verticalPadding, 0, verticalPadding)
+    }
+
+    private fun toggleEmojiPanel() {
+        if (emojiPanel.visibility == View.VISIBLE) {
+            emojiPanel.visibility = View.GONE
+            return
+        }
+        if (emojiGrid.childCount == 0) {
+            EmojiSuggester.commonEmojis.forEach { emoji ->
+                val btn = Button(this, null, 0, R.style.AiChip).apply {
+                    text = emoji
+                    textSize = 20f
+                    setOnClickListener {
+                        currentInputConnection?.commitText(emoji, 1)
+                    }
+                }
+                emojiGrid.addView(btn)
+            }
+        }
+        emojiPanel.visibility = View.VISIBLE
     }
 
     private fun toggleClipboardPanel() {
@@ -260,6 +294,16 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 btn.visibility = View.GONE
             }
         }
+
+        // Check the last completed word (before the trailing space) for an emoji match.
+        val lastWord = before.trim().substringAfterLast(" ")
+        val emoji = EmojiSuggester.suggestForWord(lastWord)
+        if (emoji != null && before.endsWith(" ")) {
+            emojiSuggestBtn.text = emoji
+            emojiSuggestBtn.visibility = View.VISIBLE
+        } else {
+            emojiSuggestBtn.visibility = View.GONE
+        }
     }
 
     private fun insertSuggestedWord(word: String) {
@@ -354,6 +398,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 wordButtons.forEach { it.visibility = View.GONE }
                 scheduleLiveCheck()
                 maybeAutoCapitalize(ic)
+                updateWordSuggestions()
             }
             else -> {
                 var code = primaryCode.toChar()
