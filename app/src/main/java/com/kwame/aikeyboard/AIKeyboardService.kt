@@ -201,8 +201,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             clipboardPanel.visibility = View.GONE
             return
         }
-        // Catch the current clipboard content in case it was copied before the
-        // keyboard's live listener was attached (e.g. copied from another app first).
         val currentClip = clipboardManager.primaryClip
             ?.takeIf { it.itemCount > 0 }
             ?.getItemAt(0)?.text?.toString()
@@ -291,7 +289,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
     }
 
-    /** Runs a task that returns up to 3 alternative options, shown as tappable cards. */
     private fun runAiMulti(task: String, replaceText: Boolean = true) {
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) {
@@ -420,51 +417,41 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         wordButtons.forEach { it.visibility = View.GONE }
     }
 
-    // Tracks the last sentence we auto-corrected, so if the user manually retypes over
+    // Tracks the last word we auto-corrected, so if the user manually retypes over
     // it afterward, we don't fight them by re-correcting the same spot again.
-    private var lastAutoCorrectedSentence: String = ""
+    private var lastAutoCorrectedWord: String = ""
 
-    private fun scheduleLiveCheck() {
-        pendingSuggestJob?.cancel()
-        debounceHandler.removeCallbacksAndMessages(null)
-        debounceHandler.postDelayed({
-            runLiveCheck()
-        }, 900)
-    }
-
-    private fun runLiveCheck() {
+    /** Called right when a word is finished (space pressed) — checks just that one word, immediately. */
+    private fun checkLastWordNow() {
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) return
 
-        val fullBefore = ic.getTextBeforeCursor(300, 0)?.toString().orEmpty()
-        // Grab just the last sentence (after the last ./!/? before the cursor).
-        val lastSentence = fullBefore.trimEnd()
-            .substringAfterLast(". ")
-            .substringAfterLast("! ")
-            .substringAfterLast("? ")
-            .trim()
+        val fullBefore = ic.getTextBeforeCursor(60, 0)?.toString().orEmpty()
+        val trimmed = fullBefore.trimEnd()
+        val word = trimmed.substringAfterLast(" ").substringAfterLast("\n")
 
-        if (lastSentence.split(" ").size < 3) return
-        if (lastSentence == lastAutoCorrectedSentence) return
+        if (word.length < 2) return
+        if (word == lastAutoCorrectedWord) return
+        if (!word.any { it.isLetter() }) return
 
+        pendingSuggestJob?.cancel()
         pendingSuggestJob = scope.launch {
-            aiClient.run("livecheck", lastSentence).onSuccess { result ->
+            aiClient.run("livecheck", word).onSuccess { result ->
                 val corrected = result.trim()
                 if (corrected.isBlank() || corrected.equals("NONE", ignoreCase = true)) return@onSuccess
-                if (corrected == lastSentence) return@onSuccess
+                if (corrected.equals(word, ignoreCase = true)) return@onSuccess
+                if (corrected.contains(" ")) return@onSuccess
 
-                // Re-check the field still ends with the exact sentence we checked,
-                // in case the user kept typing while we waited on the network.
                 val currentIc = currentInputConnection ?: return@onSuccess
-                val currentBefore = currentIc.getTextBeforeCursor(300, 0)?.toString().orEmpty()
-                if (!currentBefore.trimEnd().endsWith(lastSentence)) return@onSuccess
+                val currentBefore = currentIc.getTextBeforeCursor(60, 0)?.toString().orEmpty()
+                if (!currentBefore.trimEnd().endsWith(word)) return@onSuccess
+                if (!currentBefore.endsWith("$word ")) return@onSuccess
 
                 currentIc.beginBatchEdit()
-                currentIc.deleteSurroundingText(lastSentence.length, 0)
-                currentIc.commitText(corrected, 1)
+                currentIc.deleteSurroundingText(word.length + 1, 0)
+                currentIc.commitText("$corrected ", 1)
                 currentIc.endBatchEdit()
-                lastAutoCorrectedSentence = corrected
-                toast("Auto-corrected")
+                lastAutoCorrectedWord = corrected
             }
         }
     }
@@ -551,7 +538,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             32 -> {
                 ic.commitText(" ", 1)
                 wordButtons.forEach { it.visibility = View.GONE }
-                scheduleLiveCheck()
+                checkLastWordNow()
                 maybeAutoCapitalize(ic)
                 updateWordSuggestions()
             }
