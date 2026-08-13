@@ -45,6 +45,64 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/multiOptionPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#1C1C3A"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Choose one"
+            android:textColor="#AAAAAA"
+            android:textSize="12sp"
+            android:paddingBottom="4dp" />
+
+        <Button
+            android:id="@+id/option1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#14142B"
+            android:textColor="#FFFFFF"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            android:layout_marginBottom="4dp"
+            android:padding="8dp" />
+
+        <Button
+            android:id="@+id/option2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#14142B"
+            android:textColor="#FFFFFF"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            android:layout_marginBottom="4dp"
+            android:padding="8dp" />
+
+        <Button
+            android:id="@+id/option3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#14142B"
+            android:textColor="#FFFFFF"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            android:layout_marginBottom="4dp"
+            android:padding="8dp" />
+
+        <Button
+            android:id="@+id/btnMultiCancel"
+            style="@style/AiChip"
+            android:text="✕ Cancel"
+            android:layout_gravity="end" />
+
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/clipboardPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
