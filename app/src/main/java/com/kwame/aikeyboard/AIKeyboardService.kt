@@ -201,6 +201,14 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             clipboardPanel.visibility = View.GONE
             return
         }
+        // Catch the current clipboard content in case it was copied before the
+        // keyboard's live listener was attached (e.g. copied from another app first).
+        val currentClip = clipboardManager.primaryClip
+            ?.takeIf { it.itemCount > 0 }
+            ?.getItemAt(0)?.text?.toString()
+        if (!currentClip.isNullOrBlank()) {
+            Prefs.addClip(this, currentClip)
+        }
         renderClipboardList()
         clipboardPanel.visibility = View.VISIBLE
     }
