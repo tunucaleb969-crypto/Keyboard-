@@ -24,6 +24,12 @@ class AIClient(private val apiKey: String) {
                 "Return ONLY the corrected text, nothing else:\n\n$text"
         "reply" -> "Suggest 3 short, natural reply options to the following message. " +
                 "Return ONLY the 3 replies, one per line, no numbering:\n\n$text"
+        "explain" -> "Explain what the following sentence means, in simple plain language. " +
+                "Keep it short, 1-2 sentences:\n\n$text"
+        "cv" -> "Rewrite the following text so it sounds professional and polished enough for a CV, " +
+                "resume, or job application. Return ONLY the rewritten text:\n\n$text"
+        "business" -> "Rewrite the following text in a clear, confident business/workplace tone, " +
+                "suitable for a professional email or report. Return ONLY the rewritten text:\n\n$text"
         else -> "Rewrite the following text in a $task tone. Keep the same meaning and length " +
                 "roughly the same. Return ONLY the rewritten text, nothing else:\n\n$text"
     }
