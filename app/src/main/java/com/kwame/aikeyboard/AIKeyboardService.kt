@@ -362,10 +362,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
         if (Prefs.getVibrateEnabled(this)) {
             if (android.os.Build.VERSION.SDK_INT >= 26) {
-                vibrator.vibrate(VibrationEffect.createOneShot(12, VibrationEffect.DEFAULT_AMPLITUDE))
+                vibrator.vibrate(VibrationEffect.createOneShot(35, 255))
             } else {
                 @Suppress("DEPRECATION")
-                vibrator.vibrate(12)
+                vibrator.vibrate(35)
             }
         }
     }
