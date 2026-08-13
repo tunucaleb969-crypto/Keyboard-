@@ -33,7 +33,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnSaveKey).setOnClickListener {
-            val cleanKey = editKey.text.toString().replace(Regex("\\s"), "")
+            val cleanKey = editKey.text.toString().replace(Regex("[^\\x21-\\x7E]"), "")
             Prefs.setApiKey(this, cleanKey)
             editKey.setText(cleanKey)
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
