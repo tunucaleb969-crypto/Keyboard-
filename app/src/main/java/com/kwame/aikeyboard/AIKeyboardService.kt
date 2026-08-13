@@ -438,6 +438,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         pendingSuggestJob = scope.launch {
             aiClient.run("livecheck", word).onSuccess { result ->
                 val corrected = result.trim()
+                toast("Checked '$word' -> '$corrected'")
+
                 if (corrected.isBlank() || corrected.equals("NONE", ignoreCase = true)) return@onSuccess
                 if (corrected.equals(word, ignoreCase = true)) return@onSuccess
                 if (corrected.contains(" ")) return@onSuccess
@@ -452,9 +454,20 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 currentIc.commitText("$corrected ", 1)
                 currentIc.endBatchEdit()
                 lastAutoCorrectedWord = corrected
+            }.onFailure {
+                toast("Check failed: ${it.message}")
             }
         }
-    }
+
+                val currentIc = currentInputConnection ?: return@onSuccess
+                val currentBefore = currentIc.getTextBeforeCursor(60, 0)?.toString().orEmpty()
+                if (!currentBefore.trimEnd().endsWith(word)) return@onSuccess
+                if (!currentBefore.endsWith("$word ")) return@onSuccess
+
+                currentIc.beginBatchEdit()
+                currentIc.deleteSurroundingText(word.length + 1, 0)
+                currentIc.commitText("$corrected ", 1)
+                currentI
 
     private fun autoUnshift() {
         if (capsOn && !shiftLocked) {
