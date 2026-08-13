@@ -76,8 +76,6 @@
 
     </LinearLayout>
 
-    <!-- Emoji picker panel: hidden until the emoji button is tapped. Uses a simple
-         wrapping GridLayout (no external library needed). -->
     <ScrollView
         android:id="@+id/emojiPanel"
         android:layout_width="match_parent"
@@ -180,6 +178,21 @@
                 android:id="@+id/btnSuggestReply"
                 style="@style/AiChip"
                 android:text="💬 Reply" />
+
+            <Button
+                android:id="@+id/btnExplain"
+                style="@style/AiChip"
+                android:text="❓ Explain" />
+
+            <Button
+                android:id="@+id/btnCvMode"
+                style="@style/AiChip"
+                android:text="📄 CV" />
+
+            <Button
+                android:id="@+id/btnBusinessMode"
+                style="@style/AiChip"
+                android:text="💼 Business" />
 
         </LinearLayout>
     </HorizontalScrollView>
