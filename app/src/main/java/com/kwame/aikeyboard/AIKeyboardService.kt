@@ -395,7 +395,12 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         playKeyFeedback()
         when (primaryCode) {
             Keyboard.KEYCODE_DELETE -> {
-                ic.deleteSurroundingText(1, 0)
+                val selected = ic.getSelectedText(0)
+                if (!selected.isNullOrEmpty()) {
+                    ic.commitText("", 1)
+                } else {
+                    ic.deleteSurroundingText(1, 0)
+                }
                 updateWordSuggestions()
             }
             -1 -> {
