@@ -420,16 +420,53 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         wordButtons.forEach { it.visibility = View.GONE }
     }
 
+    // Tracks the last sentence we auto-corrected, so if the user manually retypes over
+    // it afterward, we don't fight them by re-correcting the same spot again.
+    private var lastAutoCorrectedSentence: String = ""
+
     private fun scheduleLiveCheck() {
         pendingSuggestJob?.cancel()
         debounceHandler.removeCallbacksAndMessages(null)
         debounceHandler.postDelayed({
-            val ic = currentInputConnection ?: return@postDelayed
-            val before = ic.getTextBeforeCursor(200, 0)?.toString().orEmpty()
-            if (before.trim().split(" ").size >= 3 && Prefs.getApiKey(this).isNotBlank()) {
-                // Real build: call aiClient.run("grammar", before) here.
-            }
+            runLiveCheck()
         }, 900)
+    }
+
+    private fun runLiveCheck() {
+        val ic = currentInputConnection ?: return
+        if (Prefs.getApiKey(this).isBlank()) return
+
+        val fullBefore = ic.getTextBeforeCursor(300, 0)?.toString().orEmpty()
+        // Grab just the last sentence (after the last ./!/? before the cursor).
+        val lastSentence = fullBefore.trimEnd()
+            .substringAfterLast(". ")
+            .substringAfterLast("! ")
+            .substringAfterLast("? ")
+            .trim()
+
+        if (lastSentence.split(" ").size < 3) return
+        if (lastSentence == lastAutoCorrectedSentence) return
+
+        pendingSuggestJob = scope.launch {
+            aiClient.run("livecheck", lastSentence).onSuccess { result ->
+                val corrected = result.trim()
+                if (corrected.isBlank() || corrected.equals("NONE", ignoreCase = true)) return@onSuccess
+                if (corrected == lastSentence) return@onSuccess
+
+                // Re-check the field still ends with the exact sentence we checked,
+                // in case the user kept typing while we waited on the network.
+                val currentIc = currentInputConnection ?: return@onSuccess
+                val currentBefore = currentIc.getTextBeforeCursor(300, 0)?.toString().orEmpty()
+                if (!currentBefore.trimEnd().endsWith(lastSentence)) return@onSuccess
+
+                currentIc.beginBatchEdit()
+                currentIc.deleteSurroundingText(lastSentence.length, 0)
+                currentIc.commitText(corrected, 1)
+                currentIc.endBatchEdit()
+                lastAutoCorrectedSentence = corrected
+                toast("Auto-corrected")
+            }
+        }
     }
 
     private fun autoUnshift() {
