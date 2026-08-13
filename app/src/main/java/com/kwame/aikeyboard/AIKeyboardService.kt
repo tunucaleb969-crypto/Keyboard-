@@ -132,6 +132,15 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         root.findViewById<Button>(R.id.btnSuggestReply).setOnClickListener {
             runAiOnFullText("reply", replaceText = false)
         }
+        root.findViewById<Button>(R.id.btnExplain).setOnClickListener {
+            runAiOnFullText("explain", replaceText = false)
+        }
+        root.findViewById<Button>(R.id.btnCvMode).setOnClickListener {
+            runAiOnFullText("cv")
+        }
+        root.findViewById<Button>(R.id.btnBusinessMode).setOnClickListener {
+            runAiOnFullText("business")
+        }
 
         if (Prefs.getAutoCapitalize(this)) {
             capsOn = true
