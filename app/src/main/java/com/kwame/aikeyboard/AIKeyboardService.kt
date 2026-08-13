@@ -417,11 +417,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         wordButtons.forEach { it.visibility = View.GONE }
     }
 
-    // Tracks the last word we auto-corrected, so if the user manually retypes over
-    // it afterward, we don't fight them by re-correcting the same spot again.
     private var lastAutoCorrectedWord: String = ""
 
-    /** Called right when a word is finished (space pressed) — checks just that one word, immediately. */
     private fun checkLastWordNow() {
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) return
@@ -458,16 +455,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 toast("Check failed: ${it.message}")
             }
         }
-
-                val currentIc = currentInputConnection ?: return@onSuccess
-                val currentBefore = currentIc.getTextBeforeCursor(60, 0)?.toString().orEmpty()
-                if (!currentBefore.trimEnd().endsWith(word)) return@onSuccess
-                if (!currentBefore.endsWith("$word ")) return@onSuccess
-
-                currentIc.beginBatchEdit()
-                currentIc.deleteSurroundingText(word.length + 1, 0)
-                currentIc.commitText("$corrected ", 1)
-                currentI
+    }
 
     private fun autoUnshift() {
         if (capsOn && !shiftLocked) {
@@ -545,43 +533,4 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             -2 -> toggleSymbols()
             10 -> {
                 ic.commitText("\n", 1)
-                wordButtons.forEach { it.visibility = View.GONE }
-                maybeAutoCapitalize(ic)
-            }
-            32 -> {
-                ic.commitText(" ", 1)
-                wordButtons.forEach { it.visibility = View.GONE }
-                checkLastWordNow()
-                maybeAutoCapitalize(ic)
-                updateWordSuggestions()
-            }
-            else -> {
-                var code = primaryCode.toChar()
-                if (capsOn && !onSymbols) code = code.uppercaseChar()
-                ic.commitText(code.toString(), 1)
-                updateWordSuggestions()
-                justAutoCapped = false
-                autoUnshift()
-            }
-        }
-    }
-
-    private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-
-    override fun onPress(primaryCode: Int) {}
-    override fun onRelease(primaryCode: Int) {}
-    override fun onText(text: CharSequence?) {}
-    override fun swipeLeft() {}
-    override fun swipeRight() {}
-    override fun swipeDown() {}
-    override fun swipeUp() {}
-
-    override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
-        super.onStartInput(attribute, restarting)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        debounceHandler.removeCallbacksAndMessages(null)
-    }
-}
+                wordButtons.
