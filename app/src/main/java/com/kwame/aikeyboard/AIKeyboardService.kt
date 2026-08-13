@@ -48,6 +48,15 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private lateinit var btnPreviewAccept: Button
     private lateinit var btnPreviewCancel: Button
 
+    private lateinit var multiPanel: View
+    private lateinit var option1: Button
+    private lateinit var option2: Button
+    private lateinit var option3: Button
+    private lateinit var btnMultiCancel: Button
+    private var multiBefore: String = ""
+    private var multiAfter: String = ""
+    private var multiReplaces: Boolean = true
+
     private lateinit var clipboardPanel: View
     private lateinit var clipboardList: LinearLayout
     private lateinit var clipboardManager: ClipboardManager
@@ -119,6 +128,13 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         btnPreviewAccept.setOnClickListener { acceptPreview() }
         btnPreviewCancel.setOnClickListener { hidePreview() }
 
+        multiPanel = root.findViewById(R.id.multiOptionPanel)
+        option1 = root.findViewById(R.id.option1)
+        option2 = root.findViewById(R.id.option2)
+        option3 = root.findViewById(R.id.option3)
+        btnMultiCancel = root.findViewById(R.id.btnMultiCancel)
+        btnMultiCancel.setOnClickListener { hideMultiPanel() }
+
         wireToneButton(root, R.id.btnToneProfessional, "professional")
         wireToneButton(root, R.id.btnToneFriendly, "friendly")
         wireToneButton(root, R.id.btnToneCasual, "casual")
@@ -130,7 +146,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             runAiOnFullText("grammar")
         }
         root.findViewById<Button>(R.id.btnSuggestReply).setOnClickListener {
-            runAiOnFullText("reply", replaceText = false)
+            runAiMulti("reply", replaceText = false)
         }
         root.findViewById<Button>(R.id.btnExplain).setOnClickListener {
             runAiOnFullText("explain", replaceText = false, showInPreviewOnly = true)
@@ -226,7 +242,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     }
 
     private fun wireToneButton(root: View, id: Int, tone: String) {
-        root.findViewById<Button>(id).setOnClickListener { runAiOnFullText(tone) }
+        root.findViewById<Button>(id).setOnClickListener { runAiMulti(tone) }
     }
 
     private fun runAiOnFullText(task: String, replaceText: Boolean = true, showInPreviewOnly: Boolean = false) {
@@ -265,6 +281,72 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 toast("AI request failed: ${it.message}")
             }
         }
+    }
+
+    /** Runs a task that returns up to 3 alternative options, shown as tappable cards. */
+    private fun runAiMulti(task: String, replaceText: Boolean = true) {
+        val ic = currentInputConnection ?: return
+        if (Prefs.getApiKey(this).isBlank()) {
+            toast("Add your API key in the AI Keyboard app first")
+            return
+        }
+        val before = ic.getTextBeforeCursor(4000, 0)?.toString().orEmpty()
+        val after = ic.getTextAfterCursor(4000, 0)?.toString().orEmpty()
+        val fullText = before + after
+        if (fullText.isBlank()) {
+            toast("Nothing to work with yet")
+            return
+        }
+
+        toast("Thinking…")
+        scope.launch {
+            aiClient.runMulti(task, fullText).onSuccess { options ->
+                if (options.isEmpty()) {
+                    toast("No suggestions came back — try again")
+                    return@onSuccess
+                }
+                multiBefore = before
+                multiAfter = after
+                multiReplaces = replaceText
+                showMultiPanel(options)
+            }.onFailure {
+                toast("AI request failed: ${it.message}")
+            }
+        }
+    }
+
+    private fun showMultiPanel(options: List<String>) {
+        val buttons = listOf(option1, option2, option3)
+        buttons.forEachIndexed { index, btn ->
+            val text = options.getOrNull(index)
+            if (text != null) {
+                btn.text = text
+                btn.visibility = View.VISIBLE
+                btn.setOnClickListener { chooseMultiOption(text) }
+            } else {
+                btn.visibility = View.GONE
+            }
+        }
+        multiPanel.visibility = View.VISIBLE
+    }
+
+    private fun chooseMultiOption(text: String) {
+        val ic = currentInputConnection ?: return
+        if (multiReplaces) {
+            ic.beginBatchEdit()
+            ic.deleteSurroundingText(multiBefore.length, multiAfter.length)
+            ic.commitText(text, 1)
+            ic.endBatchEdit()
+        } else {
+            ic.commitText(text, 1)
+        }
+        hideMultiPanel()
+    }
+
+    private fun hideMultiPanel() {
+        multiPanel.visibility = View.GONE
+        multiBefore = ""
+        multiAfter = ""
     }
 
     private fun showPreview(result: String) {
