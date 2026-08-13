@@ -133,7 +133,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             runAiOnFullText("reply", replaceText = false)
         }
         root.findViewById<Button>(R.id.btnExplain).setOnClickListener {
-            runAiOnFullText("explain", replaceText = false)
+            runAiOnFullText("explain", replaceText = false, showInPreviewOnly = true)
         }
         root.findViewById<Button>(R.id.btnCvMode).setOnClickListener {
             runAiOnFullText("cv")
@@ -229,7 +229,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         root.findViewById<Button>(id).setOnClickListener { runAiOnFullText(tone) }
     }
 
-    private fun runAiOnFullText(task: String, replaceText: Boolean = true) {
+    private fun runAiOnFullText(task: String, replaceText: Boolean = true, showInPreviewOnly: Boolean = false) {
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) {
             toast("Add your API key in the AI Keyboard app first")
@@ -246,13 +246,20 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         toast("Thinking…")
         scope.launch {
             aiClient.run(task, fullText).onSuccess { result ->
-                if (replaceText) {
-                    pendingBefore = before
-                    pendingAfter = after
-                    pendingResult = result
-                    showPreview(result)
-                } else {
-                    showReplyOptions(result)
+                when {
+                    showInPreviewOnly -> {
+                        pendingBefore = ""
+                        pendingAfter = ""
+                        pendingResult = ""
+                        showPreview(result)
+                    }
+                    replaceText -> {
+                        pendingBefore = before
+                        pendingAfter = after
+                        pendingResult = result
+                        showPreview(result)
+                    }
+                    else -> showReplyOptions(result)
                 }
             }.onFailure {
                 toast("AI request failed: ${it.message}")
