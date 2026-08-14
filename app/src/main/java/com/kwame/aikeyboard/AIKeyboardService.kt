@@ -567,4 +567,4 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         super.onDestroy()
         debounceHandler.removeCallbacksAndMessages(null)
     }
-             
+}
