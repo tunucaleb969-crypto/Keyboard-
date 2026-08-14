@@ -164,6 +164,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             qwertyKeyboard.isShifted = true
         }
 
+        updateEnterKeyLabel()
+
         return root
     }
 
@@ -415,7 +417,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         wordButtons.forEach { it.visibility = View.GONE }
     }
 
-    private var lastAutoCorrectedWord: String = ""
+    private val ignoredWords = mutableSetOf<String>()
 
     private fun checkLastWordNow() {
         val ic = currentInputConnection ?: return
@@ -426,7 +428,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         val word = trimmed.substringAfterLast(" ").substringAfterLast("\n")
 
         if (word.length < 2) return
-        if (word == lastAutoCorrectedWord) return
+        if (word.lowercase() in ignoredWords) return
         if (!word.any { it.isLetter() }) return
         if (WordSuggester.isKnownWord(word)) return
 
@@ -447,7 +449,9 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 currentIc.deleteSurroundingText(word.length + 1, 0)
                 currentIc.commitText("$corrected ", 1)
                 currentIc.endBatchEdit()
-                lastAutoCorrectedWord = corrected
+                // Remember the original typo so if the user deletes the correction and
+                // retypes the same original word, we leave it alone this time.
+                ignoredWords.add(word.lowercase())
             }.onFailure { }
         }
     }
@@ -577,6 +581,26 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         currentImeAction = attribute?.imeOptions?.and(EditorInfo.IME_MASK_ACTION) ?: EditorInfo.IME_ACTION_NONE
+        updateEnterKeyLabel()
+    }
+
+    /** Changes the Enter key's visible label to match what the current app actually wants (Send, Search, etc). */
+    private fun updateEnterKeyLabel() {
+        if (!::qwertyKeyboard.isInitialized) return
+        val label = when (currentImeAction) {
+            EditorInfo.IME_ACTION_SEARCH -> "Search"
+            EditorInfo.IME_ACTION_SEND -> "Send"
+            EditorInfo.IME_ACTION_GO -> "Go"
+            EditorInfo.IME_ACTION_DONE -> "Done"
+            EditorInfo.IME_ACTION_NEXT -> "Next"
+            else -> "↵"
+        }
+        qwertyKeyboard.keys.firstOrNull { it.codes.isNotEmpty() && it.codes[0] == 10 }?.let { key ->
+            key.label = label
+        }
+        if (::keyboardView.isInitialized) {
+            keyboardView.invalidateAllKeys()
+        }
     }
 
     override fun onDestroy() {
