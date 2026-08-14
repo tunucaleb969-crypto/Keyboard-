@@ -250,7 +250,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private fun wireToneButton(root: View, id: Int, tone: String) {
         root.findViewById<Button>(id).setOnClickListener { runAiMulti(tone) }
     }
-private fun runAiOnFullText(task: String, replaceText: Boolean = true, showInPreviewOnly: Boolean = false) {
+
+    private fun runAiOnFullText(task: String, replaceText: Boolean = true, showInPreviewOnly: Boolean = false) {
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) {
             toast("Add your API key in the AI Keyboard app first")
@@ -434,6 +435,7 @@ private fun runAiOnFullText(task: String, replaceText: Boolean = true, showInPre
         pendingSuggestJob = scope.launch {
             aiClient.run("livecheck", word).onSuccess { result ->
                 val corrected = result.trim()
+                toast("Checked '$word' -> '$corrected'")
                 if (corrected.isBlank() || corrected.equals("NONE", ignoreCase = true)) return@onSuccess
                 if (corrected.equals(word, ignoreCase = true)) return@onSuccess
                 if (corrected.contains(" ")) return@onSuccess
