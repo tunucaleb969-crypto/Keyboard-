@@ -527,9 +527,22 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             }
             -2 -> toggleSymbols()
             10 -> {
-                ic.commitText("\n", 1)
-                wordButtons.forEach { it.visibility = View.GONE }
-                maybeAutoCapitalize(ic)
+                val handled = when (currentImeAction) {
+                    EditorInfo.IME_ACTION_SEARCH,
+                    EditorInfo.IME_ACTION_SEND,
+                    EditorInfo.IME_ACTION_GO,
+                    EditorInfo.IME_ACTION_DONE,
+                    EditorInfo.IME_ACTION_NEXT -> {
+                        ic.performEditorAction(currentImeAction)
+                        true
+                    }
+                    else -> false
+                }
+                if (!handled) {
+                    ic.commitText("\n", 1)
+                    wordButtons.forEach { it.visibility = View.GONE }
+                    maybeAutoCapitalize(ic)
+                }
             }
             32 -> {
                 ic.commitText(" ", 1)
@@ -559,8 +572,11 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     override fun swipeDown() {}
     override fun swipeUp() {}
 
+    private var currentImeAction: Int = EditorInfo.IME_ACTION_NONE
+
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        currentImeAction = attribute?.imeOptions?.and(EditorInfo.IME_MASK_ACTION) ?: EditorInfo.IME_ACTION_NONE
     }
 
     override fun onDestroy() {
