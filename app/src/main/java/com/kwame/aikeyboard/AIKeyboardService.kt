@@ -265,7 +265,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             return
         }
 
-        toast("Thinking…")
         scope.launch {
             aiClient.run(task, fullText).onSuccess { result ->
                 when {
@@ -303,7 +302,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             return
         }
 
-        toast("Thinking…")
         scope.launch {
             aiClient.runMulti(task, fullText).onSuccess { options ->
                 if (options.isEmpty()) {
@@ -430,13 +428,12 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         if (word.length < 2) return
         if (word == lastAutoCorrectedWord) return
         if (!word.any { it.isLetter() }) return
-        if (WordSuggester.isKnownWord(word)) return // already a real word — skip the AI call entirely
+        if (WordSuggester.isKnownWord(word)) return
 
         pendingSuggestJob?.cancel()
         pendingSuggestJob = scope.launch {
             aiClient.run("livecheck", word).onSuccess { result ->
                 val corrected = result.trim()
-                toast("Checked '$word' -> '$corrected'")
                 if (corrected.isBlank() || corrected.equals("NONE", ignoreCase = true)) return@onSuccess
                 if (corrected.equals(word, ignoreCase = true)) return@onSuccess
                 if (corrected.contains(" ")) return@onSuccess
@@ -451,9 +448,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 currentIc.commitText("$corrected ", 1)
                 currentIc.endBatchEdit()
                 lastAutoCorrectedWord = corrected
-            }.onFailure {
-                toast("Check failed: ${it.message}")
-            }
+            }.onFailure { }
         }
     }
 
@@ -572,4 +567,4 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         super.onDestroy()
         debounceHandler.removeCallbacksAndMessages(null)
     }
-}
+             
