@@ -430,6 +430,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         if (word.length < 2) return
         if (word == lastAutoCorrectedWord) return
         if (!word.any { it.isLetter() }) return
+        if (WordSuggester.isKnownWord(word)) return // already a real word — skip the AI call entirely
 
         pendingSuggestJob?.cancel()
         pendingSuggestJob = scope.launch {
