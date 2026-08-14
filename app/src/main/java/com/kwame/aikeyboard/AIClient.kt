@@ -28,6 +28,15 @@ class AIClient(private val apiKey: String) {
                 "resume, or job application. Return ONLY the rewritten text:\n\n$text"
         "business" -> "Rewrite the following text in a clear, confident business/workplace tone, " +
                 "suitable for a professional email or report. Return ONLY the rewritten text:\n\n$text"
+        "livecheck" -> "TASK: single-word spell check. INPUT is exactly one word, possibly misspelled " +
+                "or possibly incomplete/an abbreviation. " +
+                "RULES: Output EXACTLY ONE WORD. Never output a sentence, phrase, or multiple words. " +
+                "Never output punctuation. Never explain. If the input word is a real, correctly-spelled " +
+                "English word already (including short/common words like 'ho', 'ok', 'go', 'hi'), output " +
+                "it back UNCHANGED. Only output a different single word if the input is clearly a typo " +
+                "of a common English word (like 'wil' -> 'will', 'bac' -> 'back', 'schol' -> 'school'). " +
+                "OUTPUT FORMAT: exactly one lowercase or as-cased word, nothing else, no period, no quotes.\n\n" +
+                "INPUT: $text\nOUTPUT:"
         else -> "Rewrite the following text in a $task tone. Return ONLY the rewritten text:\n\n$text"
     }
 
@@ -76,13 +85,11 @@ class AIClient(private val apiKey: String) {
         }
     }
 
-    /** Single-result tasks: grammar fix, explain, CV mode, business mode. */
     suspend fun run(task: String, text: String): Result<String> = withContext(Dispatchers.IO) {
         if (text.isBlank()) return@withContext Result.failure(IllegalArgumentException("Empty text"))
         callApi(buildSinglePrompt(task, text))
     }
 
-    /** Multi-result tasks: tone rewrites and reply suggestions, returned as up to 3 options. */
     suspend fun runMulti(task: String, text: String): Result<List<String>> = withContext(Dispatchers.IO) {
         if (text.isBlank()) return@withContext Result.failure(IllegalArgumentException("Empty text"))
         callApi(buildMultiPrompt(task, text)).map { raw ->
