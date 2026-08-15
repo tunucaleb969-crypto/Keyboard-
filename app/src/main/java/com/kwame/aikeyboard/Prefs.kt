@@ -45,8 +45,28 @@ object Prefs {
     fun getKeyboardHeight(context: Context): Int =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getInt(KEY_HEIGHT, 1)
 
+    fun getKeyboardHeight(context: Context): Int =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getInt(KEY_HEIGHT, 1)
+
     fun setKeyboardHeight(context: Context, value: Int) {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putInt(KEY_HEIGHT, value).apply()
+    }
+
+    private const val KEY_WORD_SUGGEST = "word_suggestions_enabled"
+    private const val KEY_AUTOCORRECT = "auto_correct_enabled"
+
+    fun getWordSuggestionsEnabled(context: Context): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_WORD_SUGGEST, true)
+
+    fun setWordSuggestionsEnabled(context: Context, value: Boolean) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_WORD_SUGGEST, value).apply()
+    }
+
+    fun getAutoCorrectEnabled(context: Context): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_AUTOCORRECT, true)
+
+    fun setAutoCorrectEnabled(context: Context, value: Boolean) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_AUTOCORRECT, value).apply()
     }
 
     fun getClipHistory(context: Context): List<String> {
