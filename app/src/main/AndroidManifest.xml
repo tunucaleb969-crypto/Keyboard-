@@ -30,6 +30,11 @@
             android:name=".SoundsActivity"
             android:exported="false"
             android:label="Sounds &amp; Vibration" />
+
+        <activity
+            android:name=".ThemesActivity"
+            android:exported="false"
+            android:label="Themes" />
         
         <activity
             android:name=".VoiceInputActivity"
