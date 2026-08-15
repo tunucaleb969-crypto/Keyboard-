@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_deep">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="←"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp"
+            android:padding="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Layout &amp; Customization"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+    <TextView style="@style/SettingsSectionTitle" android:text="ONE-HANDED MODE" />
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Enable one-handed mode" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Shrink and shift the keyboard to one side" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchOneHanded" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Side" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Which side the keyboard shifts to" android:layout_width="match_parent" />
+        </LinearLayout>
+        <RadioGroup android:id="@+id/radioSide" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
+            <RadioButton android:id="@+id/radioLeft" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Left" android:textColor="@color/text_primary" />
+            <RadioButton android:id="@+id/radioRight" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Right" android:textColor="@color/text_primary" android:layout_marginStart="12dp" />
+        </RadioGroup>
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow" android:orientation="vertical">
+        <TextView style="@style/SettingsRowTitle" android:text="Keyboard width" android:layout_width="match_parent" />
+        <TextView android:id="@+id/widthLabel" style="@style/SettingsRowSubtitle" android:text="80%" android:layout_width="match_parent" android:layout_marginBottom="8dp" />
+        <SeekBar android:id="@+id/seekWidth" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="40" />
+    </LinearLayout>
+
+    <TextView style="@style/SettingsSectionTitle" android:text="SMARTBAR" />
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Show SmartBar" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="The suggestion/AI bar above the keys" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchSmartBar" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <TextView style="@style/SettingsSectionTitle" android:text="TYPING BEHAVIOR" />
+
+    <LinearLayout style="@style/SettingsRow" android:orientation="vertical">
+        <TextView style="@style/SettingsRowTitle" android:text="Key long press delay" android:layout_width="match_parent" />
+        <TextView android:id="@+id/delayLabel" style="@style/SettingsRowSubtitle" android:text="300 ms" android:layout_width="match_parent" android:layout_marginBottom="8dp" />
+        <SeekBar android:id="@+id/seekDelay" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="700" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Hinted number row" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Long-press top row to type numbers" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchHintedNumbers" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+</LinearLayout>
+</ScrollView>
