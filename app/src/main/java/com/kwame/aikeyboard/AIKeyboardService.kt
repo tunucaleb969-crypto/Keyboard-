@@ -169,6 +169,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             qwertyKeyboard.isShifted = true
         }
 
+        updateEnterKeyLabel()
+
         return root
     }
 
@@ -597,9 +599,22 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             }
             10 -> {
                 playKeyFeedback()
-                ic.commitText("\n", 1)
-                wordButtons.forEach { it.visibility = View.GONE }
-                maybeAutoCapitalize(ic)
+                val handled = when (currentImeAction) {
+                    EditorInfo.IME_ACTION_SEARCH,
+                    EditorInfo.IME_ACTION_SEND,
+                    EditorInfo.IME_ACTION_GO,
+                    EditorInfo.IME_ACTION_DONE,
+                    EditorInfo.IME_ACTION_NEXT -> {
+                        ic.performEditorAction(currentImeAction)
+                        true
+                    }
+                    else -> false
+                }
+                if (!handled) {
+                    ic.commitText("\n", 1)
+                    wordButtons.forEach { it.visibility = View.GONE }
+                    maybeAutoCapitalize(ic)
+                }
             }
             32 -> {
                 playKeyFeedback()
@@ -634,8 +649,31 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     override fun swipeDown() {}
     override fun swipeUp() {}
 
+    private var currentImeAction: Int = EditorInfo.IME_ACTION_NONE
+
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        currentImeAction = attribute?.imeOptions?.and(EditorInfo.IME_MASK_ACTION) ?: EditorInfo.IME_ACTION_NONE
+        updateEnterKeyLabel()
+    }
+
+    /** Changes the Enter key's visible label to match what the current app actually wants (Send, Search, etc). */
+    private fun updateEnterKeyLabel() {
+        if (!::qwertyKeyboard.isInitialized) return
+        val label = when (currentImeAction) {
+            EditorInfo.IME_ACTION_SEARCH -> "Search"
+            EditorInfo.IME_ACTION_SEND -> "Send"
+            EditorInfo.IME_ACTION_GO -> "Go"
+            EditorInfo.IME_ACTION_DONE -> "Done"
+            EditorInfo.IME_ACTION_NEXT -> "Next"
+            else -> "↵"
+        }
+        qwertyKeyboard.keys.firstOrNull { it.codes.isNotEmpty() && it.codes[0] == 10 }?.let { key ->
+            key.label = label
+        }
+        if (::keyboardView.isInitialized) {
+            keyboardView.invalidateAllKeys()
+        }
     }
 
     override fun onDestroy() {
