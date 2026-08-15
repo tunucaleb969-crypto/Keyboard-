@@ -12,16 +12,23 @@ class TypingActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.btnBack).setOnClickListener { finish() }
 
-        val switchWordSuggest = findViewById<Switch>(R.id.switchWordSuggest)
-        val switchAutoCorrect = findViewById<Switch>(R.id.switchAutoCorrect)
-        val switchAutoCap = findViewById<Switch>(R.id.switchAutoCap)
+        bindSwitch(R.id.switchWordSuggest, Prefs::getWordSuggestionsEnabled, Prefs::setWordSuggestionsEnabled)
+        bindSwitch(R.id.switchAutoCorrect, Prefs::getAutoCorrectEnabled, Prefs::setAutoCorrectEnabled)
+        bindSwitch(R.id.switchAutoCap, Prefs::getAutoCapitalize, Prefs::setAutoCapitalize)
+        bindSwitch(R.id.switchUndoAutocorrect, Prefs::getUndoAutocorrectEnabled, Prefs::setUndoAutocorrectEnabled)
+        bindSwitch(R.id.switchDoubleSpace, Prefs::getDoubleSpacePeriodEnabled, Prefs::setDoubleSpacePeriodEnabled)
+        bindSwitch(R.id.switchAutoSpacePunct, Prefs::getAutoSpacePunctuationEnabled, Prefs::setAutoSpacePunctuationEnabled)
+        bindSwitch(R.id.switchRememberCaps, Prefs::getRememberCapsEnabled, Prefs::setRememberCapsEnabled)
+        bindSwitch(R.id.switchClipboardSuggest, Prefs::getClipboardSuggestionsEnabled, Prefs::setClipboardSuggestionsEnabled)
+    }
 
-        switchWordSuggest.isChecked = Prefs.getWordSuggestionsEnabled(this)
-        switchAutoCorrect.isChecked = Prefs.getAutoCorrectEnabled(this)
-        switchAutoCap.isChecked = Prefs.getAutoCapitalize(this)
-
-        switchWordSuggest.setOnCheckedChangeListener { _, checked -> Prefs.setWordSuggestionsEnabled(this, checked) }
-        switchAutoCorrect.setOnCheckedChangeListener { _, checked -> Prefs.setAutoCorrectEnabled(this, checked) }
-        switchAutoCap.setOnCheckedChangeListener { _, checked -> Prefs.setAutoCapitalize(this, checked) }
+    private fun bindSwitch(
+        id: Int,
+        getter: (android.content.Context) -> Boolean,
+        setter: (android.content.Context, Boolean) -> Unit
+    ) {
+        val switch = findViewById<Switch>(id)
+        switch.isChecked = getter(this)
+        switch.setOnCheckedChangeListener { _, checked -> setter(this, checked) }
     }
 }
