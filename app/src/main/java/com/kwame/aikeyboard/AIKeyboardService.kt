@@ -36,6 +36,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private var capsOn = false
     private var shiftLocked = false
     private var justAutoCapped = false
+    private var lastSpaceTime = 0L
 
     private lateinit var wordBtn1: Button
     private lateinit var wordBtn2: Button
@@ -67,6 +68,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private var pendingBefore: String = ""
     private var pendingAfter: String = ""
     private var pendingResult: String = ""
+
+    // For "Undo autocorrect": remembers the last auto-correction so backspace right after can revert it.
+    private var lastCorrectionOriginal: String = ""
+    private var lastCorrectionResult: String = ""
 
     private val aiClient: AIClient
         get() = AIClient(Prefs.getApiKey(this))
@@ -163,8 +168,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             justAutoCapped = true
             qwertyKeyboard.isShifted = true
         }
-
-        updateEnterKeyLabel()
 
         return root
     }
@@ -383,6 +386,11 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     }
 
     private fun updateWordSuggestions() {
+        if (!Prefs.getWordSuggestionsEnabled(this)) {
+            wordButtons.forEach { it.visibility = View.GONE }
+            emojiSuggestBtn.visibility = View.GONE
+            return
+        }
         val ic = currentInputConnection ?: return
         val before = ic.getTextBeforeCursor(40, 0)?.toString().orEmpty()
         val currentWord = before.substringAfterLast(" ").substringAfterLast("\n")
@@ -420,6 +428,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private val ignoredWords = mutableSetOf<String>()
 
     private fun checkLastWordNow() {
+        if (!Prefs.getAutoCorrectEnabled(this)) return
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) return
 
@@ -449,11 +458,28 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 currentIc.deleteSurroundingText(word.length + 1, 0)
                 currentIc.commitText("$corrected ", 1)
                 currentIc.endBatchEdit()
-                // Remember the original typo so if the user deletes the correction and
-                // retypes the same original word, we leave it alone this time.
                 ignoredWords.add(word.lowercase())
+                lastCorrectionOriginal = word
+                lastCorrectionResult = corrected
             }.onFailure { }
         }
+    }
+
+    /** If "Undo autocorrect" is on and the user backspaces right after a correction, revert it. */
+    private fun tryUndoAutocorrect(ic: InputConnection): Boolean {
+        if (!Prefs.getUndoAutocorrectEnabled(this)) return false
+        if (lastCorrectionResult.isBlank()) return false
+        val before = ic.getTextBeforeCursor(60, 0)?.toString().orEmpty()
+        if (!before.trimEnd().endsWith(lastCorrectionResult)) return false
+
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(lastCorrectionResult.length, 0)
+        ic.commitText(lastCorrectionOriginal, 1)
+        ic.endBatchEdit()
+        ignoredWords.add(lastCorrectionOriginal.lowercase())
+        lastCorrectionOriginal = ""
+        lastCorrectionResult = ""
+        return true
     }
 
     private fun autoUnshift() {
@@ -470,16 +496,18 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         keyboardView.invalidateAllKeys()
     }
 
-    private fun playKeyFeedback() {
+    private fun playKeyFeedback(isRepeatedAction: Boolean = false) {
         if (Prefs.getSoundEnabled(this)) {
             audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD)
         }
-        if (Prefs.getVibrateEnabled(this)) {
+        val vibrateAllowed = if (isRepeatedAction) Prefs.getRepeatedVibrateEnabled(this) else Prefs.getVibrateEnabled(this)
+        if (vibrateAllowed) {
+            val duration = Prefs.getVibrateDuration(this).toLong().coerceAtLeast(1)
             if (android.os.Build.VERSION.SDK_INT >= 26) {
-                vibrator.vibrate(VibrationEffect.createOneShot(35, 255))
+                vibrator.vibrate(VibrationEffect.createOneShot(duration, 255))
             } else {
                 @Suppress("DEPRECATION")
-                vibrator.vibrate(35)
+                vibrator.vibrate(duration)
             }
         }
     }
@@ -496,6 +524,37 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
     }
 
+    /** Handles the space bar: double-space-period and normal space + auto-capitalize check. */
+    private fun handleSpace(ic: InputConnection) {
+        if (Prefs.getDoubleSpacePeriodEnabled(this)) {
+            val now = System.currentTimeMillis()
+            val before = ic.getTextBeforeCursor(1, 0)?.toString().orEmpty()
+            if (before == " " && (now - lastSpaceTime) < 500) {
+                ic.deleteSurroundingText(1, 0)
+                ic.commitText(". ", 1)
+                lastSpaceTime = 0L
+                wordButtons.forEach { it.visibility = View.GONE }
+                maybeAutoCapitalize(ic)
+                return
+            }
+            lastSpaceTime = now
+        }
+        ic.commitText(" ", 1)
+        wordButtons.forEach { it.visibility = View.GONE }
+        checkLastWordNow()
+        maybeAutoCapitalize(ic)
+        updateWordSuggestions()
+    }
+
+    /** Handles punctuation keys: optionally auto-inserts a space after . , ! ? */
+    private fun handlePunctuation(ic: InputConnection, char: Char) {
+        ic.commitText(char.toString(), 1)
+        if (Prefs.getAutoSpacePunctuationEnabled(this) && char in ".,!?") {
+            ic.commitText(" ", 1)
+            maybeAutoCapitalize(ic)
+        }
+    }
+
     override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
         try {
             onKeyInner(primaryCode, keyCodes)
@@ -506,18 +565,21 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
 
     private fun onKeyInner(primaryCode: Int, keyCodes: IntArray?) {
         val ic: InputConnection = currentInputConnection ?: return
-        playKeyFeedback()
         when (primaryCode) {
             Keyboard.KEYCODE_DELETE -> {
-                val selected = ic.getSelectedText(0)
-                if (!selected.isNullOrEmpty()) {
-                    ic.commitText("", 1)
-                } else {
-                    ic.deleteSurroundingText(1, 0)
+                playKeyFeedback(isRepeatedAction = true)
+                if (!tryUndoAutocorrect(ic)) {
+                    val selected = ic.getSelectedText(0)
+                    if (!selected.isNullOrEmpty()) {
+                        ic.commitText("", 1)
+                    } else {
+                        ic.deleteSurroundingText(1, 0)
+                    }
                 }
                 updateWordSuggestions()
             }
             -1 -> {
+                playKeyFeedback()
                 if (onSymbols) return
                 if (capsOn) {
                     shiftLocked = !shiftLocked
@@ -529,33 +591,29 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 qwertyKeyboard.isShifted = capsOn
                 keyboardView.invalidateAllKeys()
             }
-            -2 -> toggleSymbols()
+            -2 -> {
+                playKeyFeedback()
+                toggleSymbols()
+            }
             10 -> {
-                val handled = when (currentImeAction) {
-                    EditorInfo.IME_ACTION_SEARCH,
-                    EditorInfo.IME_ACTION_SEND,
-                    EditorInfo.IME_ACTION_GO,
-                    EditorInfo.IME_ACTION_DONE,
-                    EditorInfo.IME_ACTION_NEXT -> {
-                        ic.performEditorAction(currentImeAction)
-                        true
-                    }
-                    else -> false
-                }
-                if (!handled) {
-                    ic.commitText("\n", 1)
-                    wordButtons.forEach { it.visibility = View.GONE }
-                    maybeAutoCapitalize(ic)
-                }
+                playKeyFeedback()
+                ic.commitText("\n", 1)
+                wordButtons.forEach { it.visibility = View.GONE }
+                maybeAutoCapitalize(ic)
             }
             32 -> {
-                ic.commitText(" ", 1)
-                wordButtons.forEach { it.visibility = View.GONE }
-                checkLastWordNow()
-                maybeAutoCapitalize(ic)
+                playKeyFeedback()
+                handleSpace(ic)
+            }
+            44, 46, 33, 63 -> { // , . ! ?
+                playKeyFeedback()
+                handlePunctuation(ic, primaryCode.toChar())
                 updateWordSuggestions()
+                justAutoCapped = false
+                autoUnshift()
             }
             else -> {
+                playKeyFeedback()
                 var code = primaryCode.toChar()
                 if (capsOn && !onSymbols) code = code.uppercaseChar()
                 ic.commitText(code.toString(), 1)
@@ -576,31 +634,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     override fun swipeDown() {}
     override fun swipeUp() {}
 
-    private var currentImeAction: Int = EditorInfo.IME_ACTION_NONE
-
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
-        currentImeAction = attribute?.imeOptions?.and(EditorInfo.IME_MASK_ACTION) ?: EditorInfo.IME_ACTION_NONE
-        updateEnterKeyLabel()
-    }
-
-    /** Changes the Enter key's visible label to match what the current app actually wants (Send, Search, etc). */
-    private fun updateEnterKeyLabel() {
-        if (!::qwertyKeyboard.isInitialized) return
-        val label = when (currentImeAction) {
-            EditorInfo.IME_ACTION_SEARCH -> "Search"
-            EditorInfo.IME_ACTION_SEND -> "Send"
-            EditorInfo.IME_ACTION_GO -> "Go"
-            EditorInfo.IME_ACTION_DONE -> "Done"
-            EditorInfo.IME_ACTION_NEXT -> "Next"
-            else -> "↵"
-        }
-        qwertyKeyboard.keys.firstOrNull { it.codes.isNotEmpty() && it.codes[0] == 10 }?.let { key ->
-            key.label = label
-        }
-        if (::keyboardView.isInitialized) {
-            keyboardView.invalidateAllKeys()
-        }
     }
 
     override fun onDestroy() {
