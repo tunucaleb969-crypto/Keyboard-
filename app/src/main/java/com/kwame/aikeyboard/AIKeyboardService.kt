@@ -91,6 +91,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         keyboardView.setOnKeyboardActionListener(this)
 
         applyKeyboardHeight()
+        applyTheme(root)
 
         wordBtn1 = root.findViewById(R.id.wordSuggest1)
         wordBtn2 = root.findViewById(R.id.wordSuggest2)
@@ -183,6 +184,48 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         keyboardView.setPadding(0, verticalPadding, 0, verticalPadding)
     }
 
+    /** Applies the user's saved theme colors to the keyboard view and its background panels. */
+    private fun applyTheme(root: View) {
+        val theme = KeyboardThemes.getById(Prefs.getTheme(this))
+
+        root.setBackgroundColor(theme.background)
+        keyboardView.setBackgroundColor(theme.background)
+        keyboardView.keyTextColor = theme.textColor
+
+        val keyBgDrawable = android.graphics.drawable.StateListDrawable().apply {
+            val pressed = android.graphics.drawable.GradientDrawable().apply {
+                setColor(theme.keyBackgroundPressed)
+                cornerRadius = 10 * resources.displayMetrics.density
+            }
+            val normal = android.graphics.drawable.GradientDrawable().apply {
+                setColor(theme.keyBackground)
+                cornerRadius = 10 * resources.displayMetrics.density
+            }
+            addState(intArrayOf(android.R.attr.state_pressed), pressed)
+            addState(intArrayOf(), normal)
+        }
+        keyboardView.keyBackground = keyBgDrawable
+
+        // Tint the strip backgrounds (suggestion bar, tone chip bar) to match the theme too.
+        val stripColor = blendColor(theme.background, theme.keyBackground, 0.5f)
+        root.findViewById<View>(R.id.wordSuggestBar)?.setBackgroundColor(stripColor)
+        root.findViewById<View>(R.id.clipboardPanel)?.setBackgroundColor(stripColor)
+        root.findViewById<View>(R.id.emojiPanel)?.setBackgroundColor(stripColor)
+        root.findViewById<View>(R.id.aiPreviewPanel)?.setBackgroundColor(stripColor)
+        root.findViewById<View>(R.id.multiOptionPanel)?.setBackgroundColor(stripColor)
+        val suggestionScroll = (root.findViewById<View>(R.id.suggestionStrip)?.parent as? View)
+        suggestionScroll?.setBackgroundColor(stripColor)
+    }
+
+    private fun blendColor(a: Int, b: Int, ratio: Float): Int {
+        val ar = (a shr 16) and 0xFF; val ag = (a shr 8) and 0xFF; val ab = a and 0xFF
+        val br = (b shr 16) and 0xFF; val bg = (b shr 8) and 0xFF; val bb = b and 0xFF
+        val r = (ar + (br - ar) * ratio).toInt().coerceIn(0, 255)
+        val g = (ag + (bg - ag) * ratio).toInt().coerceIn(0, 255)
+        val bl = (ab + (bb - ab) * ratio).toInt().coerceIn(0, 255)
+        return (0xFF shl 24) or (r shl 16) or (g shl 8) or bl
+    }
+    
     private fun toggleEmojiPanel() {
         if (emojiPanel.visibility == View.VISIBLE) {
             emojiPanel.visibility = View.GONE
