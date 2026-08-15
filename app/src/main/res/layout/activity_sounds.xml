@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_deep">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="←"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp"
+            android:padding="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sounds &amp; Vibration"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+    <TextView style="@style/SettingsSectionTitle" android:text="AUDIO" />
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Key click sound" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Play a sound on each key press" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchSound" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <TextView style="@style/SettingsSectionTitle" android:text="HAPTIC" />
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Vibrate on key press" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Haptic feedback while typing" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchVibrate" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnTestVibrate"
+        style="@style/PrimaryButton"
+        android:layout_marginTop="10dp"
+        android:text="Test vibration" />
+
+</LinearLayout>
+</ScrollView>
