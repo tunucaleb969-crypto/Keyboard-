@@ -27,6 +27,11 @@
             android:label="Typing" />
 
         <activity
+            android:name=".SoundsActivity"
+            android:exported="false"
+            android:label="Sounds &amp; Vibration" />
+        
+        <activity
             android:name=".VoiceInputActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
