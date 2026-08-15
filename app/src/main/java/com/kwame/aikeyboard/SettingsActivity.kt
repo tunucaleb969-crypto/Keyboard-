@@ -41,5 +41,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.rowSound).setOnClickListener {
             startActivity(Intent(this, SoundsActivity::class.java))
         }
+
+        findViewById<LinearLayout>(R.id.rowThemes).setOnClickListener {
+            startActivity(Intent(this, ThemesActivity::class.java))
+        }
     }
 }
