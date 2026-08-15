@@ -190,7 +190,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
 
         root.setBackgroundColor(theme.background)
         keyboardView.setBackgroundColor(theme.background)
-        keyboardView.keyTextColor = theme.textColor
 
         val keyBgDrawable = android.graphics.drawable.StateListDrawable().apply {
             val pressed = android.graphics.drawable.GradientDrawable().apply {
@@ -204,7 +203,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             addState(intArrayOf(android.R.attr.state_pressed), pressed)
             addState(intArrayOf(), normal)
         }
-        keyboardView.keyBackground = keyBgDrawable
+        keyboardView.setBackgroundDrawable(keyBgDrawable)
 
         // Tint the strip backgrounds (suggestion bar, tone chip bar) to match the theme too.
         val stripColor = blendColor(theme.background, theme.keyBackground, 0.5f)
