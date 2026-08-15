@@ -157,4 +157,14 @@ object Prefs {
     fun setRepeatedVibrateEnabled(context: Context, value: Boolean) {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_REPEATED_VIBRATE, value).apply()
     }
+
+    private const val KEY_THEME = "keyboard_theme"
+
+    /** Stored as a theme ID string, e.g. "indigo", "dark", "light", "red", "green". */
+    fun getTheme(context: Context): String =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_THEME, "indigo") ?: "indigo"
+
+    fun setTheme(context: Context, value: String) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putString(KEY_THEME, value).apply()
+    }
 }
