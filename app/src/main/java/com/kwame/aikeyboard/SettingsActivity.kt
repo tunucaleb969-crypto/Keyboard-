@@ -37,5 +37,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.rowTyping).setOnClickListener {
             startActivity(Intent(this, TypingActivity::class.java))
         }
+
+        findViewById<LinearLayout>(R.id.rowSound).setOnClickListener {
+            startActivity(Intent(this, SoundsActivity::class.java))
+        }
     }
 }
