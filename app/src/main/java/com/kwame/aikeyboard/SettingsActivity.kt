@@ -6,6 +6,7 @@ import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
@@ -31,6 +32,10 @@ class SettingsActivity : AppCompatActivity() {
             Prefs.setApiKey(this, cleanKey)
             editKey.setText(cleanKey)
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById<LinearLayout>(R.id.rowTyping).setOnClickListener {
+            startActivity(Intent(this, TypingActivity::class.java))
         }
     }
 }
