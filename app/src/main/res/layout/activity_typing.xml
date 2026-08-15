@@ -63,5 +63,47 @@
         <Switch android:id="@+id/switchAutoCap" android:layout_width="wrap_content" android:layout_height="wrap_content" />
     </LinearLayout>
 
+    <TextView style="@style/SettingsSectionTitle" android:text="ADVANCED" />
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Undo autocorrect" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Revert to original word on backspace" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchUndoAutocorrect" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Double-space period" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Double space = period + space" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchDoubleSpace" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Auto-space after punctuation" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Insert a space after . , ! ?" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchAutoSpacePunct" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Remember caps lock state" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Keep caps lock on when switching fields" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchRememberCaps" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Clipboard suggestions" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Suggest recently copied text" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchClipboardSuggest" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
 </LinearLayout>
 </ScrollView>
