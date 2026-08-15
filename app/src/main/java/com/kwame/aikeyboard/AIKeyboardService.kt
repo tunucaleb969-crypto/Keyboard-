@@ -380,6 +380,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             }
         }
         multiPanel.visibility = View.VISIBLE
+        keyboardView.visibility = View.GONE
     }
 
     private fun chooseMultiOption(text: String) {
@@ -399,11 +400,13 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         multiPanel.visibility = View.GONE
         multiBefore = ""
         multiAfter = ""
+        keyboardView.visibility = View.VISIBLE
     }
 
     private fun showPreview(result: String) {
         previewText.text = result
         previewPanel.visibility = View.VISIBLE
+        keyboardView.visibility = View.GONE
     }
 
     private fun hidePreview() {
@@ -411,6 +414,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         pendingBefore = ""
         pendingAfter = ""
         pendingResult = ""
+        keyboardView.visibility = View.VISIBLE
     }
 
     private fun acceptPreview() {
