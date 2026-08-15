@@ -22,9 +22,17 @@
         </activity>
 
         <activity
+            android:name=".TypingActivity"
+            android:exported="false"
+            android:label="Typing" />
+
+        <activity
             android:name=".VoiceInputActivity"
             android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance" />
 
         <service
             android:name=".AIKeyboardService"
