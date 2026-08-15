@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/bg_deep">
 
 <LinearLayout
     android:layout_width="match_parent"
@@ -12,112 +13,212 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="AI Keyboard Setup"
-        android:textSize="22sp"
+        android:text="AI Keyboard"
+        android:textSize="28sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-    <Button
-        android:id="@+id/btnEnableKeyboard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="1. Enable in system settings" />
-
-    <Button
-        android:id="@+id/btnChooseKeyboard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="2. Switch to AI Keyboard" />
+        android:textColor="@color/text_primary" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="3. Paste your NVIDIA API key" />
+        android:text="Setup &amp; preferences"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:layout_marginBottom="4dp" />
 
-    <EditText
-        android:id="@+id/editApiKey"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="nvapi-..."
-        android:inputType="textPassword" />
+    <!-- Setup section -->
+    <TextView style="@style/SettingsSectionTitle" android:text="SETUP" />
 
-    <Button
-        android:id="@+id/btnSaveKey"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Save key" />
+    <LinearLayout style="@style/SettingsCard">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
-        android:text="Typing Preferences"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <Switch
-        android:id="@+id/switchSound"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Key click sound" />
-
-    <Switch
-        android:id="@+id/switchVibrate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Vibrate on key press" />
-
-    <Switch
-        android:id="@+id/switchAutoCap"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Auto-capitalize sentences" />
-
-    <Button
-        android:id="@+id/btnTestVibrate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Test vibration" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Keyboard height" />
-
-    <RadioGroup
-        android:id="@+id/radioHeight"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <RadioButton
-            android:id="@+id/radioSmall"
-            android:layout_width="0dp"
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Small" />
+            android:text="Enable the keyboard in your system settings, then switch to it here."
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:layout_marginBottom="14dp" />
 
-        <RadioButton
-            android:id="@+id/radioMedium"
-            android:layout_width="0dp"
+        <Button
+            android:id="@+id/btnEnableKeyboard"
+            style="@style/PrimaryButton"
+            android:text="1. Enable in system settings" />
+
+        <Button
+            android:id="@+id/btnChooseKeyboard"
+            style="@style/PrimaryButton"
+            android:layout_marginTop="10dp"
+            android:text="2. Switch to AI Keyboard" />
+
+    </LinearLayout>
+
+    <!-- API key section -->
+    <TextView style="@style/SettingsSectionTitle" android:text="AI CONNECTION" />
+
+    <LinearLayout style="@style/SettingsCard">
+
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Medium" />
+            android:text="Paste your NVIDIA API key"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
 
-        <RadioButton
-            android:id="@+id/radioLarge"
-            android:layout_width="0dp"
+        <EditText
+            android:id="@+id/editApiKey"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Large" />
+            android:hint="nvapi-..."
+            android:textColorHint="@color/text_secondary"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/card_background"
+            android:padding="12dp"
+            android:inputType="textPassword" />
 
-    </RadioGroup>
+        <Button
+            android:id="@+id/btnSaveKey"
+            style="@style/PrimaryButton"
+            android:layout_marginTop="12dp"
+            android:text="Save key" />
+
+    </LinearLayout>
+
+    <!-- Typing preferences section -->
+    <TextView style="@style/SettingsSectionTitle" android:text="TYPING PREFERENCES" />
+
+    <LinearLayout style="@style/SettingsCard">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Key click sound"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+
+            <Switch
+                android:id="@+id/switchSound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#22FFFFFF"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Vibrate on key press"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+
+            <Switch
+                android:id="@+id/switchVibrate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#22FFFFFF"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Auto-capitalize sentences"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+
+            <Switch
+                android:id="@+id/switchAutoCap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnTestVibrate"
+            style="@style/PrimaryButton"
+            android:layout_marginTop="14dp"
+            android:text="Test vibration" />
+
+    </LinearLayout>
+
+    <!-- Keyboard height section -->
+    <TextView style="@style/SettingsSectionTitle" android:text="KEYBOARD HEIGHT" />
+
+    <LinearLayout style="@style/SettingsCard">
+
+        <RadioGroup
+            android:id="@+id/radioHeight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioSmall"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/text_primary"
+                android:text="Small" />
+
+            <RadioButton
+                android:id="@+id/radioMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/text_primary"
+                android:text="Medium" />
+
+            <RadioButton
+                android:id="@+id/radioLarge"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/text_primary"
+                android:text="Large" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="24dp" />
 
 </LinearLayout>
 </ScrollView>
