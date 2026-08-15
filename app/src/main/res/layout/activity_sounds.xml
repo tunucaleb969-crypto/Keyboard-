@@ -47,6 +47,20 @@
         <Switch android:id="@+id/switchSound" android:layout_width="wrap_content" android:layout_height="wrap_content" />
     </LinearLayout>
 
+    <LinearLayout style="@style/SettingsRow" android:orientation="vertical">
+        <TextView style="@style/SettingsRowTitle" android:text="Sound volume" android:layout_width="match_parent" />
+        <TextView style="@style/SettingsRowSubtitle" android:text="Adjust audio feedback volume" android:layout_width="match_parent" android:layout_marginBottom="8dp" />
+        <SeekBar android:id="@+id/seekVolume" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="100" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Key long press sounds" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="Sound when holding down a key" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchLongPressSound" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
     <TextView style="@style/SettingsSectionTitle" android:text="HAPTIC" />
 
     <LinearLayout style="@style/SettingsRow">
@@ -55,6 +69,20 @@
             <TextView style="@style/SettingsRowSubtitle" android:text="Haptic feedback while typing" android:layout_width="match_parent" />
         </LinearLayout>
         <Switch android:id="@+id/switchVibrate" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow" android:orientation="vertical">
+        <TextView style="@style/SettingsRowTitle" android:text="Vibration duration" android:layout_width="match_parent" />
+        <TextView android:id="@+id/vibrateDurationLabel" style="@style/SettingsRowSubtitle" android:text="35 ms" android:layout_width="match_parent" android:layout_marginBottom="8dp" />
+        <SeekBar android:id="@+id/seekVibrateDuration" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="150" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/SettingsRow">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView style="@style/SettingsRowTitle" android:text="Repeated action vibration" android:layout_width="match_parent" />
+            <TextView style="@style/SettingsRowSubtitle" android:text="e.g. holding the delete key" android:layout_width="match_parent" />
+        </LinearLayout>
+        <Switch android:id="@+id/switchRepeatedVibrate" android:layout_width="wrap_content" android:layout_height="wrap_content" />
     </LinearLayout>
 
     <Button
