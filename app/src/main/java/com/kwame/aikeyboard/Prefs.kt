@@ -23,6 +23,23 @@ object Prefs {
     private const val KEY_SOUND_VOLUME = "sound_volume"
     private const val KEY_LONGPRESS_SOUND = "longpress_sound_enabled"
     private const val KEY_REPEATED_VIBRATE = "repeated_vibrate_enabled"
+    private const val KEY_THEME = "keyboard_theme"
+
+    // New: one-handed mode, SmartBar, long-press delay, hinted numbers
+    private const val KEY_ONE_HANDED = "one_handed_enabled"
+    private const val KEY_ONE_HANDED_SIDE = "one_handed_side" // "left" or "right"
+    private const val KEY_ONE_HANDED_WIDTH = "one_handed_width_percent"
+    private const val KEY_SMARTBAR_ENABLED = "smartbar_enabled"
+    private const val KEY_SMARTBAR_TOP = "smartbar_on_top"
+    private const val KEY_LONGPRESS_DELAY = "longpress_delay_ms"
+    private const val KEY_HINTED_NUMBERS = "hinted_numbers_enabled"
+
+    // New: dictionary
+    private const val KEY_DICTIONARY_WORDS = "dictionary_words"
+    private const val DICT_DIVIDER = "\u0002"
+
+    // New: last-remembered caps state (for "remember caps lock state")
+    private const val KEY_LAST_CAPS_LOCK = "last_caps_lock_state"
 
     fun getApiKey(context: Context): String =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_API, "") ?: ""
@@ -128,7 +145,6 @@ object Prefs {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_CLIPBOARD_SUGGEST, value).apply()
     }
 
-    /** Vibration duration in milliseconds. Default 35ms (matches what we found works on this phone). */
     fun getVibrateDuration(context: Context): Int =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getInt(KEY_VIBRATE_DURATION, 35)
 
@@ -136,7 +152,6 @@ object Prefs {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putInt(KEY_VIBRATE_DURATION, value).apply()
     }
 
-    /** Sound volume 0-100. */
     fun getSoundVolume(context: Context): Int =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getInt(KEY_SOUND_VOLUME, 50)
 
@@ -158,13 +173,89 @@ object Prefs {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_REPEATED_VIBRATE, value).apply()
     }
 
-    private const val KEY_THEME = "keyboard_theme"
-
-    /** Stored as a theme ID string, e.g. "indigo", "dark", "light", "red", "green". */
     fun getTheme(context: Context): String =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_THEME, "indigo") ?: "indigo"
 
     fun setTheme(context: Context, value: String) {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putString(KEY_THEME, value).apply()
+    }
+
+    fun getOneHandedEnabled(context: Context): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_ONE_HANDED, false)
+
+    fun setOneHandedEnabled(context: Context, value: Boolean) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_ONE_HANDED, value).apply()
+    }
+
+    /** "left" or "right" */
+    fun getOneHandedSide(context: Context): String =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_ONE_HANDED_SIDE, "right") ?: "right"
+
+    fun setOneHandedSide(context: Context, value: String) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putString(KEY_ONE_HANDED_SIDE, value).apply()
+    }
+
+    fun getOneHandedWidth(context: Context): Int =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getInt(KEY_ONE_HANDED_WIDTH, 80)
+
+    fun setOneHandedWidth(context: Context, value: Int) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putInt(KEY_ONE_HANDED_WIDTH, value).apply()
+    }
+
+    fun getSmartBarEnabled(context: Context): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_SMARTBAR_ENABLED, true)
+
+    fun setSmartBarEnabled(context: Context, value: Boolean) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_SMARTBAR_ENABLED, value).apply()
+    }
+
+    fun getSmartBarOnTop(context: Context): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_SMARTBAR_TOP, true)
+
+    fun setSmartBarOnTop(context: Context, value: Boolean) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_SMARTBAR_TOP, value).apply()
+    }
+
+    fun getLongPressDelay(context: Context): Int =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getInt(KEY_LONGPRESS_DELAY, 300)
+
+    fun setLongPressDelay(context: Context, value: Int) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putInt(KEY_LONGPRESS_DELAY, value).apply()
+    }
+
+    fun getHintedNumbersEnabled(context: Context): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_HINTED_NUMBERS, false)
+
+    fun setHintedNumbersEnabled(context: Context, value: Boolean) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_HINTED_NUMBERS, value).apply()
+    }
+
+    fun getDictionaryWords(context: Context): List<String> {
+        val raw = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_DICTIONARY_WORDS, "") ?: ""
+        return if (raw.isBlank()) emptyList() else raw.split(DICT_DIVIDER).filter { it.isNotBlank() }
+    }
+
+    fun addDictionaryWord(context: Context, word: String) {
+        val trimmed = word.trim()
+        if (trimmed.isBlank()) return
+        val current = getDictionaryWords(context).toMutableList()
+        if (current.any { it.equals(trimmed, ignoreCase = true) }) return
+        current.add(0, trimmed)
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+            .edit().putString(KEY_DICTIONARY_WORDS, current.joinToString(DICT_DIVIDER)).apply()
+    }
+
+    fun removeDictionaryWord(context: Context, word: String) {
+        val current = getDictionaryWords(context).toMutableList()
+        current.removeAll { it.equals(word, ignoreCase = true) }
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+            .edit().putString(KEY_DICTIONARY_WORDS, current.joinToString(DICT_DIVIDER)).apply()
+    }
+
+    fun getLastCapsLockState(context: Context): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_LAST_CAPS_LOCK, false)
+
+    fun setLastCapsLockState(context: Context, value: Boolean) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_LAST_CAPS_LOCK, value).apply()
     }
 }
