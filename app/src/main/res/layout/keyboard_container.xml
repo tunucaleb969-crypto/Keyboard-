@@ -247,10 +247,13 @@
                 style="@style/AiChip"
                 android:text="📄 CV" />
 
-            <Button
-                android:id="@+id/btnBusinessMode"
-                style="@style/AiChip"
-                android:text="💼 Business" />
+            <Button android:id="@+id/btnBusinessMode" style="@style/AiChip" android:text="💼 Business" />
+            <Button android:id="@+id/btnTonePolite" style="@style/AiChip" android:text="Polite" />
+            <Button android:id="@+id/btnToneConfident" style="@style/AiChip" android:text="Confident" />
+            <Button android:id="@+id/btnShorten" style="@style/AiChip" android:text="✂️ Shorten" />
+            <Button android:id="@+id/btnExpand" style="@style/AiChip" android:text="↔️ Expand" />
+            <Button android:id="@+id/btnTranslate" style="@style/AiChip" android:text="🌐 Translate" />
+            <Button android:id="@+id/btnDecline" style="@style/AiChip" android:text="🚫 Decline" />
 
         </LinearLayout>
     </HorizontalScrollView>
