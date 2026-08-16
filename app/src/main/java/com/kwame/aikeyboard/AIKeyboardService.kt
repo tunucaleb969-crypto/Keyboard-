@@ -673,10 +673,13 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     }
 
     private var currentImeAction: Int = EditorInfo.IME_ACTION_NONE
+    private var currentFieldIsMultiline: Boolean = false
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         currentImeAction = attribute?.imeOptions?.and(EditorInfo.IME_MASK_ACTION) ?: EditorInfo.IME_ACTION_NONE
+        val inputType = attribute?.inputType ?: 0
+        currentFieldIsMultiline = (inputType and android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0
         updateEnterKeyLabel()
     }
 
@@ -748,11 +751,17 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             }
             10 -> {
                 playKeyFeedback()
-                val handled = when (currentImeAction) {
-                    EditorInfo.IME_ACTION_SEARCH,
-                    EditorInfo.IME_ACTION_GO,
-                    EditorInfo.IME_ACTION_DONE,
-                    EditorInfo.IME_ACTION_NEXT -> {
+                val handled = when {
+                    currentImeAction == EditorInfo.IME_ACTION_SEND && !currentFieldIsMultiline -> {
+                        // Single-line send fields (like Snapchat's chat bar) actually want the
+                        // Send action triggered, not a newline (which they'd just swallow anyway).
+                        ic.performEditorAction(currentImeAction)
+                        true
+                    }
+                    currentImeAction == EditorInfo.IME_ACTION_SEARCH ||
+                    currentImeAction == EditorInfo.IME_ACTION_GO ||
+                    currentImeAction == EditorInfo.IME_ACTION_DONE ||
+                    currentImeAction == EditorInfo.IME_ACTION_NEXT -> {
                         ic.performEditorAction(currentImeAction)
                         true
                     }
