@@ -45,5 +45,21 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.rowThemes).setOnClickListener {
             startActivity(Intent(this, ThemesActivity::class.java))
         }
+
+        findViewById<LinearLayout>(R.id.rowLayout).setOnClickListener {
+            startActivity(Intent(this, LayoutActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.rowEmoji).setOnClickListener {
+            startActivity(Intent(this, EmojisActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.rowClipboard).setOnClickListener {
+            startActivity(Intent(this, ClipboardActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.rowDictionary).setOnClickListener {
+            startActivity(Intent(this, DictionaryActivity::class.java))
+        }
     }
 }
