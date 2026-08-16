@@ -43,6 +43,16 @@ class AIClient(private val apiKey: String) {
     private fun buildMultiPrompt(task: String, text: String): String = when (task) {
         "reply" -> "Suggest 3 short, natural reply options to the following message. " +
                 "Return exactly 3 lines, one reply per line, no numbering, no extra text:\n\n$text"
+        "decline" -> "Suggest 3 short, polite ways to decline or say no to the following message. " +
+                "Return exactly 3 lines, one option per line, no numbering, no extra text:\n\n$text"
+        "shorten" -> "Make the following text shorter and more concise while keeping the meaning. " +
+                "Give exactly 3 different shortened versions. Return exactly 3 lines, one per line, " +
+                "no numbering, no extra text:\n\n$text"
+        "expand" -> "Expand the following short text into a fuller, more detailed message. " +
+                "Give exactly 3 different expanded versions. Return exactly 3 lines, one per line, " +
+                "no numbering, no extra text:\n\n$text"
+        "translate" -> "Translate the following text into Spanish, French, and German. " +
+                "Return exactly 3 lines in this order: Spanish, French, German. No labels, no extra text:\n\n$text"
         else -> "Rewrite the following text in a $task tone. Give exactly 3 different alternative " +
                 "versions. Return exactly 3 lines, one version per line, no numbering, no labels, " +
                 "no extra commentary:\n\n$text"
