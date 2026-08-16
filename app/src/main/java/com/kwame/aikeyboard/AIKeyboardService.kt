@@ -164,6 +164,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         wireToneButton(root, R.id.btnToneFormal, "formal")
         wireToneButton(root, R.id.btnToneFunny, "funny")
         wireToneButton(root, R.id.btnToneFlirty, "flirty")
+        wireToneButton(root, R.id.btnTonePolite, "polite")
+        wireToneButton(root, R.id.btnToneConfident, "confident")
 
         root.findViewById<Button>(R.id.btnFixGrammar).setOnClickListener {
             runAiOnFullText("grammar")
@@ -179,6 +181,18 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
         root.findViewById<Button>(R.id.btnBusinessMode).setOnClickListener {
             runAiOnFullText("business")
+        }
+        root.findViewById<Button>(R.id.btnShorten).setOnClickListener {
+            runAiMulti("shorten")
+        }
+        root.findViewById<Button>(R.id.btnExpand).setOnClickListener {
+            runAiMulti("expand")
+        }
+        root.findViewById<Button>(R.id.btnTranslate).setOnClickListener {
+            runAiMulti("translate")
+        }
+        root.findViewById<Button>(R.id.btnDecline).setOnClickListener {
+            runAiMulti("decline", replaceText = false)
         }
 
         if (Prefs.getRememberCapsEnabled(this)) {
