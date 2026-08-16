@@ -351,8 +351,11 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
 
     private fun renderClipboardList() {
         clipboardList.removeAllViews()
-        val clips = Prefs.getClipHistory(this)
-        if (clips.isEmpty()) {
+        val pinned = Prefs.getPinnedClips(this)
+        val clips = Prefs.getClipHistory(this).filter { it !in pinned }
+        val all = pinned.map { it to true } + clips.map { it to false }
+
+        if (all.isEmpty()) {
             val empty = TextView(this).apply {
                 text = "Nothing copied yet"
                 setTextColor(0xFFAAAAAA.toInt())
@@ -362,12 +365,22 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             clipboardList.addView(empty)
             return
         }
-        clips.forEach { clip ->
+        all.forEach { (clip, isPinned) ->
             val chip = Button(this, null, 0, R.style.AiChip).apply {
-                text = if (clip.length > 24) clip.take(24) + "…" else clip
+                val prefix = if (isPinned) "📌 " else ""
+                text = prefix + if (clip.length > 20) clip.take(20) + "…" else clip
                 setOnClickListener {
                     currentInputConnection?.commitText(clip, 1)
                     clipboardPanel.visibility = View.GONE
+                }
+                setOnLongClickListener {
+                    if (isPinned) {
+                        Prefs.unpinClip(this@AIKeyboardService, clip)
+                    } else {
+                        Prefs.pinClip(this@AIKeyboardService, clip)
+                    }
+                    renderClipboardList()
+                    true
                 }
             }
             clipboardList.addView(chip)
