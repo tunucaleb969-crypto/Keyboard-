@@ -736,7 +736,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 playKeyFeedback()
                 val handled = when (currentImeAction) {
                     EditorInfo.IME_ACTION_SEARCH,
-                    EditorInfo.IME_ACTION_SEND,
                     EditorInfo.IME_ACTION_GO,
                     EditorInfo.IME_ACTION_DONE,
                     EditorInfo.IME_ACTION_NEXT -> {
