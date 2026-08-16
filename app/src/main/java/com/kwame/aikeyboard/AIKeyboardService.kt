@@ -141,6 +141,14 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
 
         emojiPanel = root.findViewById(R.id.emojiPanel)
         emojiGrid = root.findViewById(R.id.emojiGrid)
+        emojiSearchBox = root.findViewById(R.id.emojiSearchBox)
+        emojiSearchBox.addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) {
+                renderEmojiGrid(showRecentsFirst = true, searchQuery = s?.toString().orEmpty())
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
         root.findViewById<Button>(R.id.btnEmoji).setOnClickListener { toggleEmojiPanel() }
 
         previewPanel = root.findViewById(R.id.aiPreviewPanel)
@@ -281,24 +289,49 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         suggestionStripScroll.visibility = visible
     }
 
+    private lateinit var emojiSearchBox: android.widget.EditText
+
     private fun toggleEmojiPanel() {
         if (emojiPanel.visibility == View.VISIBLE) {
             emojiPanel.visibility = View.GONE
             return
         }
-        if (emojiGrid.childCount == 0) {
-            EmojiSuggester.commonEmojis.forEach { emoji ->
-                val btn = Button(this, null, 0, R.style.AiChip).apply {
-                    text = emoji
-                    textSize = 20f
-                    setOnClickListener {
-                        currentInputConnection?.commitText(emoji, 1)
-                    }
-                }
-                emojiGrid.addView(btn)
-            }
-        }
+        renderEmojiGrid(showRecentsFirst = true)
         emojiPanel.visibility = View.VISIBLE
+    }
+
+    private fun renderEmojiGrid(showRecentsFirst: Boolean, searchQuery: String = "") {
+        emojiGrid.removeAllViews()
+        val emojisToShow: List<String> = when {
+            searchQuery.isNotBlank() -> EmojiSuggester.searchEmojis(searchQuery)
+            showRecentsFirst -> {
+                val recents = Prefs.getRecentEmojis(this)
+                val rest = EmojiSuggester.commonEmojis.filter { it !in recents }
+                recents + rest
+            }
+            else -> EmojiSuggester.commonEmojis
+        }
+        if (emojisToShow.isEmpty()) {
+            val empty = TextView(this).apply {
+                text = "No emoji found"
+                setTextColor(0xFFAAAAAA.toInt())
+                textSize = 13f
+                setPadding(8, 8, 8, 8)
+            }
+            emojiGrid.addView(empty)
+            return
+        }
+        emojisToShow.forEach { emoji ->
+            val btn = Button(this, null, 0, R.style.AiChip).apply {
+                text = emoji
+                textSize = 20f
+                setOnClickListener {
+                    currentInputConnection?.commitText(emoji, 1)
+                    Prefs.addRecentEmoji(this@AIKeyboardService, emoji)
+                }
+            }
+            emojiGrid.addView(btn)
+        }
     }
 
     private fun toggleClipboardPanel() {
