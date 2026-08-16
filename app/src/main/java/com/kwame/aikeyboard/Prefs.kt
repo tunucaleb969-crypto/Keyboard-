@@ -180,6 +180,59 @@ object Prefs {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putString(KEY_THEME, value).apply()
     }
 
+    private const val KEY_RECENT_EMOJIS = "recent_emojis"
+    private const val EMOJI_DIVIDER = "\u0003"
+    private const val MAX_RECENT_EMOJIS = 20
+
+    fun getRecentEmojis(context: Context): List<String> {
+        val raw = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_RECENT_EMOJIS, "") ?: ""
+        return if (raw.isBlank()) emptyList() else raw.split(EMOJI_DIVIDER).filter { it.isNotBlank() }
+    }
+
+    fun addRecentEmoji(context: Context, emoji: String) {
+        val current = getRecentEmojis(context).toMutableList()
+        current.remove(emoji)
+        current.add(0, emoji)
+        val trimmed = current.take(MAX_RECENT_EMOJIS)
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+            .edit().putString(KEY_RECENT_EMOJIS, trimmed.joinToString(EMOJI_DIVIDER)).apply()
+    }
+
+    private const val KEY_PINNED_CLIPS = "pinned_clips"
+
+    fun getPinnedClips(context: Context): List<String> {
+        val raw = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_PINNED_CLIPS, "") ?: ""
+        return if (raw.isBlank()) emptyList() else raw.split(CLIP_DIVIDER).filter { it.isNotBlank() }
+    }
+
+    fun pinClip(context: Context, text: String) {
+        val current = getPinnedClips(context).toMutableList()
+        if (current.contains(text)) return
+        current.add(0, text)
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+            .edit().putString(KEY_PINNED_CLIPS, current.joinToString(CLIP_DIVIDER)).apply()
+    }
+
+    fun unpinClip(context: Context, text: String) {
+        val current = getPinnedClips(context).toMutableList()
+        current.remove(text)
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+            .edit().putString(KEY_PINNED_CLIPS, current.joinToString(CLIP_DIVIDER)).apply()
+    }
+
+    private const val KEY_TOOLBAR_CHIPS = "toolbar_visible_chips"
+
+    /** Comma-separated list of chip IDs that should show in the SmartBar toolbar. Empty = show all. */
+    fun getVisibleToolbarChips(context: Context): Set<String> {
+        val raw = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_TOOLBAR_CHIPS, "") ?: ""
+        return if (raw.isBlank()) emptySet() else raw.split(",").filter { it.isNotBlank() }.toSet()
+    }
+
+    fun setVisibleToolbarChips(context: Context, chipIds: Set<String>) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+            .edit().putString(KEY_TOOLBAR_CHIPS, chipIds.joinToString(",")).apply()
+    }
+
     fun getOneHandedEnabled(context: Context): Boolean =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_ONE_HANDED, false)
 
