@@ -275,6 +275,11 @@
             <Button android:id="@+id/btnExpand" style="@style/AiChip" android:text="↔️ Expand" />
             <Button android:id="@+id/btnTranslate" style="@style/AiChip" android:text="🌐 Translate" />
             <Button android:id="@+id/btnDecline" style="@style/AiChip" android:text="🚫 Decline" />
+            <Button android:id="@+id/btnSelectAll" style="@style/AiChip" android:text="Select All" />
+            <Button android:id="@+id/btnCopy" style="@style/AiChip" android:text="Copy" />
+            <Button android:id="@+id/btnCut" style="@style/AiChip" android:text="Cut" />
+            <Button android:id="@+id/btnPaste" style="@style/AiChip" android:text="Paste" />
+            <Button android:id="@+id/btnGoogleSearch" style="@style/AiChip" android:text="🔍 Search" />
 
         </LinearLayout>
     </HorizontalScrollView>
