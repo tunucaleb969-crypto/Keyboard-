@@ -868,10 +868,24 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
     override fun onText(text: CharSequence?) {}
-    override fun swipeLeft() {}
-    override fun swipeRight() {}
+
+    override fun swipeLeft() {
+        moveCursor(-1)
+    }
+
+    override fun swipeRight() {
+        moveCursor(1)
+    }
+
     override fun swipeDown() {}
     override fun swipeUp() {}
+
+    private fun moveCursor(direction: Int) {
+        val ic = currentInputConnection ?: return
+        val extractedText = ic.getExtractedText(android.view.inputmethod.ExtractedTextRequest(), 0) ?: return
+        val newPos = (extractedText.selectionStart + direction).coerceAtLeast(0)
+        ic.setSelection(newPos, newPos)
+    }
 
     override fun onDestroy() {
         super.onDestroy()
