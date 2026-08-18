@@ -202,7 +202,31 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         root.findViewById<Button>(R.id.btnDecline).setOnClickListener {
             runAiMulti("decline", replaceText = false)
         }
-
+        root.findViewById<Button>(R.id.btnSelectAll).setOnClickListener {
+            currentInputConnection?.performContextMenuAction(android.R.id.selectAll)
+        }
+        root.findViewById<Button>(R.id.btnCopy).setOnClickListener {
+            currentInputConnection?.performContextMenuAction(android.R.id.copy)
+        }
+        root.findViewById<Button>(R.id.btnCut).setOnClickListener {
+            currentInputConnection?.performContextMenuAction(android.R.id.cut)
+        }
+        root.findViewById<Button>(R.id.btnPaste).setOnClickListener {
+            currentInputConnection?.performContextMenuAction(android.R.id.paste)
+        }
+        root.findViewById<Button>(R.id.btnGoogleSearch).setOnClickListener {
+            val ic = currentInputConnection
+            val before = ic?.getTextBeforeCursor(200, 0)?.toString().orEmpty()
+            val after = ic?.getTextAfterCursor(200, 0)?.toString().orEmpty()
+            val query = (before + after).trim()
+            if (query.isNotBlank()) {
+                val searchIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=" + android.net.Uri.encode(query)))
+                searchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(searchIntent)
+            } else {
+                toast("Type something to search first")
+            }
+        }
         if (Prefs.getRememberCapsEnabled(this)) {
             capsOn = Prefs.getLastCapsLockState(this)
             shiftLocked = capsOn
