@@ -174,7 +174,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         wireToneButton(root, R.id.btnToneFlirty, "flirty")
         wireToneButton(root, R.id.btnTonePolite, "polite")
         wireToneButton(root, R.id.btnToneConfident, "confident")
-
+        applyToolbarVisibility(root)
         root.findViewById<Button>(R.id.btnFixGrammar).setOnClickListener {
             runAiOnFullText("grammar")
         }
@@ -291,6 +291,27 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         return (0xFF shl 24) or (r shl 16) or (g shl 8) or bl
     }
 
+    /** Hides individual AI chips the user turned off in Toolbar settings. */
+    private fun applyToolbarVisibility(root: View) {
+        val hidden = Prefs.getVisibleToolbarChips(this)
+        val idMap = mapOf(
+            "fix" to R.id.btnFixGrammar, "professional" to R.id.btnToneProfessional,
+            "friendly" to R.id.btnToneFriendly, "casual" to R.id.btnToneCasual,
+            "formal" to R.id.btnToneFormal, "funny" to R.id.btnToneFunny,
+            "flirty" to R.id.btnToneFlirty, "polite" to R.id.btnTonePolite,
+            "confident" to R.id.btnToneConfident, "reply" to R.id.btnSuggestReply,
+            "decline" to R.id.btnDecline, "explain" to R.id.btnExplain,
+            "cv" to R.id.btnCvMode, "business" to R.id.btnBusinessMode,
+            "shorten" to R.id.btnShorten, "expand" to R.id.btnExpand,
+            "translate" to R.id.btnTranslate, "selectall" to R.id.btnSelectAll,
+            "copy" to R.id.btnCopy, "cut" to R.id.btnCut, "paste" to R.id.btnPaste,
+            "search" to R.id.btnGoogleSearch
+        )
+        idMap.forEach { (chipId, viewId) ->
+            root.findViewById<View>(viewId)?.visibility = if (chipId in hidden) View.GONE else View.VISIBLE
+        }
+    }
+    
     /** Shrinks the keyboard and shifts it to one side of the screen, if enabled. */
     private fun applyOneHandedMode() {
         val lp = keyboardView.layoutParams as? LinearLayout.LayoutParams ?: return
