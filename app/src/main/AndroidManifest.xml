@@ -55,6 +55,11 @@
             android:name=".DictionaryActivity"
             android:exported="false"
             android:label="Dictionary" />
+
+        <activity
+            android:name=".ToolbarActivity"
+            android:exported="false"
+            android:label="Toolbar" />
         
         <activity
             android:name=".VoiceInputActivity"
