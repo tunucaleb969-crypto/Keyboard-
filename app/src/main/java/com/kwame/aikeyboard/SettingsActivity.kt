@@ -61,5 +61,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.rowDictionary).setOnClickListener {
             startActivity(Intent(this, DictionaryActivity::class.java))
         }
+
+        findViewById<LinearLayout>(R.id.rowToolbar).setOnClickListener {
+            startActivity(Intent(this, ToolbarActivity::class.java))
+        }
     }
 }
