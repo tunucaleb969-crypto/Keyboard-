@@ -580,7 +580,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         currentInputConnection?.commitText(first, 1)
     }
 
-    private fun updateWordSuggestions() {
+        private fun updateWordSuggestions() {
         if (!Prefs.getWordSuggestionsEnabled(this)) {
             wordButtons.forEach { it.visibility = View.GONE }
             emojiSuggestBtn.visibility = View.GONE
@@ -589,6 +589,33 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         val ic = currentInputConnection ?: return
         val before = ic.getTextBeforeCursor(40, 0)?.toString().orEmpty()
         val currentWord = before.substringAfterLast(" ").substringAfterLast("\n")
+
+        // If the cursor is right after a space (no partial word typed yet), suggest likely
+        // NEXT words based on the word just finished, instead of prefix-matching an empty string.
+        if (currentWord.isBlank() && before.endsWith(" ")) {
+            val previousWord = before.trim().substringAfterLast(" ")
+            val predicted = NextWordPredictor.predict(previousWord)
+            if (predicted.isNotEmpty()) {
+                wordButtons.forEachIndexed { index, btn ->
+                    val word = predicted.getOrNull(index)
+                    if (word != null) {
+                        btn.text = word
+                        btn.visibility = View.VISIBLE
+                    } else {
+                        btn.visibility = View.GONE
+                    }
+                }
+                val lastWordForEmoji = before.trim().substringAfterLast(" ")
+                val emoji = if (lastWordForEmoji.isNotBlank()) EmojiSuggester.suggestForWord(lastWordForEmoji) else null
+                if (emoji != null) {
+                    emojiSuggestBtn.text = emoji
+                    emojiSuggestBtn.visibility = View.VISIBLE
+                } else {
+                    emojiSuggestBtn.visibility = View.GONE
+                }
+                return
+            }
+        }
 
         // Personal dictionary words get priority over the built-in list.
         val dictMatches = if (currentWord.isNotBlank()) {
