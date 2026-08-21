@@ -941,14 +941,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
 
     override fun onText(text: CharSequence?) {}
 
-    override fun swipeLeft() {
-        moveCursor(-1)
-    }
-
-    override fun swipeRight() {
-        moveCursor(1)
-    }
-
+    override fun swipeLeft() {}
+    override fun swipeRight() {}
     override fun swipeDown() {}
     override fun swipeUp() {}
 
@@ -957,6 +951,56 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         val extractedText = ic.getExtractedText(android.view.inputmethod.ExtractedTextRequest(), 0) ?: return
         val newPos = (extractedText.selectionStart + direction).coerceAtLeast(0)
         ic.setSelection(newPos, newPos)
+    }
+
+    // Custom spacebar-drag cursor movement, since KeyboardView's built-in swipe
+    // detection is unreliable across devices.
+    private var spacebarDragStartX = 0f
+    private var spacebarDragLastX = 0f
+    private var isDraggingSpacebar = false
+    private var spacebarWasSwiped = false
+
+    private fun findSpaceKeyBounds(): android.graphics.Rect? {
+        val key = qwertyKeyboard.keys.firstOrNull { it.codes.isNotEmpty() && it.codes[0] == 32 } ?: return null
+        return android.graphics.Rect(key.x, key.y, key.x + key.width, key.y + key.height)
+    }
+
+    private fun setupSpacebarDrag() {
+        keyboardView.setOnTouchListener { _, event ->
+            val bounds = findSpaceKeyBounds()
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    if (bounds != null && bounds.contains(event.x.toInt(), event.y.toInt())) {
+                        spacebarDragStartX = event.x
+                        spacebarDragLastX = event.x
+                        isDraggingSpacebar = true
+                        spacebarWasSwiped = false
+                    } else {
+                        isDraggingSpacebar = false
+                    }
+                    false
+                }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    if (isDraggingSpacebar) {
+                        val delta = event.x - spacebarDragLastX
+                        val threshold = 24 * resources.displayMetrics.density
+                        if (kotlin.math.abs(delta) > threshold) {
+                            moveCursor(if (delta > 0) 1 else -1)
+                            spacebarDragLastX = event.x
+                            spacebarWasSwiped = true
+                            return@setOnTouchListener true
+                        }
+                    }
+                    false
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    val consumed = isDraggingSpacebar && spacebarWasSwiped
+                    isDraggingSpacebar = false
+                    consumed
+                }
+                else -> false
+            }
+        }
     }
 
     override fun onDestroy() {
