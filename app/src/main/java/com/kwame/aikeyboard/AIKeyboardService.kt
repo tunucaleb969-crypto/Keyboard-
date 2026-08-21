@@ -101,6 +101,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         onSymbols = false
         keyboardView.keyboard = qwertyKeyboard
         keyboardView.setOnKeyboardActionListener(this)
+        setupSpacebarDrag()
 
         applyKeyboardHeight()
         applyTheme(root)
