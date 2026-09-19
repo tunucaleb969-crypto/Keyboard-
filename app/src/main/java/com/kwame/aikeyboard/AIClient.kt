@@ -19,6 +19,10 @@ class AIClient(private val apiKey: String) {
 
     private val jsonMedia = "application/json".toMediaType()
 
+    // Gemini free-tier model. Same choice used for the Money rebuild:
+    // fast, cheap, GA on the free tier per ai.google.dev pricing.
+    private val geminiModel = "gemini-3.1-flash-lite"
+
     private fun buildSinglePrompt(task: String, text: String): String = when (task) {
         "grammar" -> "Fix grammar, spelling, punctuation and fluency in the following text. " +
                 "Preserve the original meaning and tone exactly — only fix errors, don't rewrite style. " +
@@ -86,22 +90,30 @@ class AIClient(private val apiKey: String) {
         }
     }
 
+    // --- Gemini transport (replaces NVIDIA's OpenAI-style chat/completions call) ---
+    // Endpoint/body/response shape confirmed against ai.google.dev docs:
+    // POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
+    // header: x-goog-api-key
+    // body: { contents: [ { parts: [ { text } ] } ], generationConfig }
+    // response: candidates[0].content.parts[0].text
     private fun callApi(prompt: String): Result<String> {
         return try {
             val body = JSONObject().apply {
-                put("model", "meta/llama-3.1-8b-instruct")
-                put("messages", JSONArray().put(
+                put("contents", JSONArray().put(
                     JSONObject().apply {
-                        put("role", "user")
-                        put("content", prompt)
+                        put("parts", JSONArray().put(
+                            JSONObject().apply { put("text", prompt) }
+                        ))
                     }
                 ))
-                put("max_tokens", 500)
+                put("generationConfig", JSONObject().apply {
+                    put("maxOutputTokens", 500)
+                })
             }
 
             val request = Request.Builder()
-                .url("https://integrate.api.nvidia.com/v1/chat/completions")
-                .addHeader("Authorization", "Bearer $apiKey")
+                .url("https://generativelanguage.googleapis.com/v1beta/models/$geminiModel:generateContent")
+                .addHeader("x-goog-api-key", apiKey)
                 .addHeader("content-type", "application/json")
                 .post(body.toString().toRequestBody(jsonMedia))
                 .build()
@@ -112,10 +124,12 @@ class AIClient(private val apiKey: String) {
                     return Result.failure(Exception("API error ${response.code}: $raw"))
                 }
                 val json = JSONObject(raw)
-                val message = json.getJSONArray("choices")
+                val message = json.getJSONArray("candidates")
                     .getJSONObject(0)
-                    .getJSONObject("message")
-                    .getString("content")
+                    .getJSONObject("content")
+                    .getJSONArray("parts")
+                    .getJSONObject(0)
+                    .getString("text")
                 Result.success(message.trim())
             }
         } catch (e: Exception) {
