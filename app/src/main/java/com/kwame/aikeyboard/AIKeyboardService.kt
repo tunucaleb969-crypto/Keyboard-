@@ -413,8 +413,8 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
         all.forEach { (clip, isPinned) ->
             val chip = Button(this, null, 0, R.style.AiChip).apply {
-                val prefix = if (isPinned) "📌 " else ""
-                text = prefix + if (clip.length > 20) clip.take(20) + "…" else clip
+                val prefix = if (isPinned) "\uD83D\uDCCC " else ""
+                text = prefix + if (clip.length > 20) clip.take(20) + "\u2026" else clip
                 setOnClickListener {
                     currentInputConnection?.commitText(clip, 1)
                     clipboardPanel.visibility = View.GONE
@@ -449,6 +449,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     }
 
     private fun runAiOnFullText(task: String, replaceText: Boolean = true, showInPreviewOnly: Boolean = false) {
+        if (isSensitiveField) {
+            toast("AI is disabled in secure fields")
+            return
+        }
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) {
             toast("Add your API key in the AI Keyboard app first")
@@ -486,6 +490,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     }
 
     private fun runAiMulti(task: String, replaceText: Boolean = true) {
+        if (isSensitiveField) {
+            toast("AI is disabled in secure fields")
+            return
+        }
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) {
             toast("Add your API key in the AI Keyboard app first")
@@ -502,7 +510,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         scope.launch {
             aiClient.runMulti(task, fullText).onSuccess { options ->
                 if (options.isEmpty()) {
-                    toast("No suggestions came back — try again")
+                    toast("No suggestions came back \u2014 try again")
                     return@onSuccess
                 }
                 multiBefore = before
@@ -582,6 +590,11 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     }
 
         private fun updateWordSuggestions() {
+        if (isSensitiveField) {
+            wordButtons.forEach { it.visibility = View.GONE }
+            emojiSuggestBtn.visibility = View.GONE
+            return
+        }
         if (!Prefs.getWordSuggestionsEnabled(this)) {
             wordButtons.forEach { it.visibility = View.GONE }
             emojiSuggestBtn.visibility = View.GONE
@@ -665,6 +678,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private val ignoredWords = mutableSetOf<String>()
 
     private fun checkLastWordNow() {
+        if (isSensitiveField) return
         if (!Prefs.getAutoCorrectEnabled(this)) return
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) return
@@ -793,13 +807,34 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
 
     private var currentImeAction: Int = EditorInfo.IME_ACTION_NONE
     private var currentFieldIsMultiline: Boolean = false
+    private var isSensitiveField: Boolean = false
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         currentImeAction = attribute?.imeOptions?.and(EditorInfo.IME_MASK_ACTION) ?: EditorInfo.IME_ACTION_NONE
         val inputType = attribute?.inputType ?: 0
         currentFieldIsMultiline = (inputType and android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0
+        isSensitiveField = computeIsSensitiveField(attribute)
         updateEnterKeyLabel()
+    }
+
+    /**
+     * True for password/PIN fields, or any field that explicitly asks not to be
+     * personalized/learned from. When true, AI actions (grammar/tone/etc, and the
+     * AI-powered "livecheck" autocorrect) and word suggestions/learning are fully
+     * disabled for that field — not just hidden, actually never invoked — so
+     * password content never gets sent to Gemini and never feeds suggestions.
+     */
+    private fun computeIsSensitiveField(attribute: EditorInfo?): Boolean {
+        val inputType = attribute?.inputType ?: 0
+        val variation = inputType and android.text.InputType.TYPE_MASK_VARIATION
+        val cls = inputType and android.text.InputType.TYPE_MASK_CLASS
+        val isPasswordVariation = variation == android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD ||
+            variation == android.text.InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD ||
+            variation == android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+            (cls == android.text.InputType.TYPE_CLASS_NUMBER && variation == android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD)
+        val noLearningFlag = ((attribute?.imeOptions ?: 0) and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING) != 0
+        return isPasswordVariation || noLearningFlag
     }
 
     private fun updateEnterKeyLabel() {
@@ -810,7 +845,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             EditorInfo.IME_ACTION_GO -> "Go"
             EditorInfo.IME_ACTION_DONE -> "Done"
             EditorInfo.IME_ACTION_NEXT -> "Next"
-            else -> "↵"
+            else -> "\u21b5"
         }
         qwertyKeyboard.keys.firstOrNull { it.codes.isNotEmpty() && it.codes[0] == 10 }?.let { key ->
             key.label = label
