@@ -466,26 +466,42 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             return
         }
 
+        val cached = AiResponseCache.getSingle(task, fullText)
+        if (cached != null) {
+            handleAiSingleResult(cached, before, after, replaceText, showInPreviewOnly)
+            return
+        }
+
+        if (!NetworkUtils.isOnline(this)) {
+            toast("No internet connection \u2014 AI needs to be online. Typing and suggestions still work offline.")
+            return
+        }
+
         scope.launch {
             aiClient.run(task, fullText).onSuccess { result ->
-                when {
-                    showInPreviewOnly -> {
-                        pendingBefore = ""
-                        pendingAfter = ""
-                        pendingResult = ""
-                        showPreview(result)
-                    }
-                    replaceText -> {
-                        pendingBefore = before
-                        pendingAfter = after
-                        pendingResult = result
-                        showPreview(result)
-                    }
-                    else -> showReplyOptions(result)
-                }
+                AiResponseCache.putSingle(task, fullText, result)
+                handleAiSingleResult(result, before, after, replaceText, showInPreviewOnly)
             }.onFailure {
                 toast("AI request failed: ${it.message}")
             }
+        }
+    }
+
+    private fun handleAiSingleResult(result: String, before: String, after: String, replaceText: Boolean, showInPreviewOnly: Boolean) {
+        when {
+            showInPreviewOnly -> {
+                pendingBefore = ""
+                pendingAfter = ""
+                pendingResult = ""
+                showPreview(result)
+            }
+            replaceText -> {
+                pendingBefore = before
+                pendingAfter = after
+                pendingResult = result
+                showPreview(result)
+            }
+            else -> showReplyOptions(result)
         }
     }
 
@@ -507,12 +523,27 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             return
         }
 
+        val cachedOptions = AiResponseCache.getMulti(task, fullText)
+        if (cachedOptions != null) {
+            multiBefore = before
+            multiAfter = after
+            multiReplaces = replaceText
+            showMultiPanel(cachedOptions)
+            return
+        }
+
+        if (!NetworkUtils.isOnline(this)) {
+            toast("No internet connection \u2014 AI needs to be online. Typing and suggestions still work offline.")
+            return
+        }
+
         scope.launch {
             aiClient.runMulti(task, fullText).onSuccess { options ->
                 if (options.isEmpty()) {
                     toast("No suggestions came back \u2014 try again")
                     return@onSuccess
                 }
+                AiResponseCache.putMulti(task, fullText, options)
                 multiBefore = before
                 multiAfter = after
                 multiReplaces = replaceText
@@ -693,6 +724,14 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         if (WordSuggester.isKnownWord(word)) return
         if (Prefs.getDictionaryWords(this).any { it.equals(word, ignoreCase = true) }) return
 
+        val cachedCorrection = AiResponseCache.getSingle("livecheck", word)
+        if (cachedCorrection != null) {
+            applyLiveCheckCorrection(word, cachedCorrection)
+            return
+        }
+
+        if (!NetworkUtils.isOnline(this)) return
+
         pendingSuggestJob?.cancel()
         pendingSuggestJob = scope.launch {
             aiClient.run("livecheck", word).onSuccess { result ->
@@ -700,21 +739,25 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                 if (corrected.isBlank() || corrected.equals("NONE", ignoreCase = true)) return@onSuccess
                 if (corrected.equals(word, ignoreCase = true)) return@onSuccess
                 if (corrected.contains(" ")) return@onSuccess
-
-                val currentIc = currentInputConnection ?: return@onSuccess
-                val currentBefore = currentIc.getTextBeforeCursor(60, 0)?.toString().orEmpty()
-                if (!currentBefore.trimEnd().endsWith(word)) return@onSuccess
-                if (!currentBefore.endsWith("$word ")) return@onSuccess
-
-                currentIc.beginBatchEdit()
-                currentIc.deleteSurroundingText(word.length + 1, 0)
-                currentIc.commitText("$corrected ", 1)
-                currentIc.endBatchEdit()
-                ignoredWords.add(word.lowercase())
-                lastCorrectionOriginal = word
-                lastCorrectionResult = corrected
+                AiResponseCache.putSingle("livecheck", word, corrected)
+                applyLiveCheckCorrection(word, corrected)
             }.onFailure { }
         }
+    }
+
+    private fun applyLiveCheckCorrection(word: String, corrected: String) {
+        val currentIc = currentInputConnection ?: return
+        val currentBefore = currentIc.getTextBeforeCursor(60, 0)?.toString().orEmpty()
+        if (!currentBefore.trimEnd().endsWith(word)) return
+        if (!currentBefore.endsWith("$word ")) return
+
+        currentIc.beginBatchEdit()
+        currentIc.deleteSurroundingText(word.length + 1, 0)
+        currentIc.commitText("$corrected ", 1)
+        currentIc.endBatchEdit()
+        ignoredWords.add(word.lowercase())
+        lastCorrectionOriginal = word
+        lastCorrectionResult = corrected
     }
 
     private fun tryUndoAutocorrect(ic: InputConnection): Boolean {
