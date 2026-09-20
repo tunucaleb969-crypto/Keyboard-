@@ -34,12 +34,14 @@
             <Button
                 android:id="@+id/btnPreviewCancel"
                 style="@style/AiChip"
-                android:text="✕ Cancel" />
+                android:text="\u2715 Cancel"
+                android:contentDescription="Cancel AI suggestion" />
 
             <Button
                 android:id="@+id/btnPreviewAccept"
                 style="@style/AiChip"
-                android:text="✓ Use this" />
+                android:text="\u2713 Use this"
+                android:contentDescription="Accept AI suggestion and insert it" />
 
         </LinearLayout>
     </LinearLayout>
@@ -97,8 +99,9 @@
         <Button
             android:id="@+id/btnMultiCancel"
             style="@style/AiChip"
-            android:text="✕ Cancel"
-            android:layout_gravity="end" />
+            android:text="\u2715 Cancel"
+            android:layout_gravity="end"
+            android:contentDescription="Cancel and dismiss these options" />
 
     </LinearLayout>
 
@@ -146,7 +149,8 @@
             android:id="@+id/emojiSearchBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Search emoji…"
+            android:hint="Search emoji\u2026"
+            android:contentDescription="Search emoji"
             android:textColorHint="@color/text_secondary"
             android:textColor="@color/text_primary"
             android:background="@drawable/chip_background"
@@ -184,22 +188,25 @@
         <Button android:id="@+id/wordSuggest1" style="@style/AiChip" android:text="" android:visibility="gone" />
         <Button android:id="@+id/wordSuggest2" style="@style/AiChip" android:text="" android:visibility="gone" />
         <Button android:id="@+id/wordSuggest3" style="@style/AiChip" android:text="" android:visibility="gone" />
-        <Button android:id="@+id/emojiSuggest" style="@style/AiChip" android:text="" android:visibility="gone" />
+        <Button android:id="@+id/emojiSuggest" style="@style/AiChip" android:text="" android:visibility="gone" android:contentDescription="Suggested emoji" />
 
         <Button
             android:id="@+id/btnEmoji"
             style="@style/AiChip"
-            android:text="😊" />
+            android:text="\uD83D\uDE0A"
+            android:contentDescription="Emoji panel" />
 
         <Button
             android:id="@+id/btnClipboard"
             style="@style/AiChip"
-            android:text="📋" />
+            android:text="\uD83D\uDCCB"
+            android:contentDescription="Clipboard history" />
 
         <Button
             android:id="@+id/btnMic"
             style="@style/AiChip"
-            android:text="🎤" />
+            android:text="\uD83C\uDF A4"
+            android:contentDescription="Voice input" />
 
     </LinearLayout>
 
@@ -221,7 +228,8 @@
             <Button
                 android:id="@+id/btnFixGrammar"
                 style="@style/AiChip"
-                android:text="✓ Fix" />
+                android:text="\u2713 Fix"
+                android:contentDescription="Fix grammar" />
 
             <Button
                 android:id="@+id/btnToneProfessional"
@@ -256,30 +264,33 @@
             <Button
                 android:id="@+id/btnSuggestReply"
                 style="@style/AiChip"
-                android:text="💬 Reply" />
+                android:text="\uD83D\uDCAC Reply"
+                android:contentDescription="Suggest a reply" />
 
             <Button
                 android:id="@+id/btnExplain"
                 style="@style/AiChip"
-                android:text="❓ Explain" />
+                android:text="\u2753 Explain"
+                android:contentDescription="Explain this text" />
 
             <Button
                 android:id="@+id/btnCvMode"
                 style="@style/AiChip"
-                android:text="📄 CV" />
+                android:text="\uD83D\uDCC4 CV"
+                android:contentDescription="Rewrite for a CV or resume" />
 
-            <Button android:id="@+id/btnBusinessMode" style="@style/AiChip" android:text="💼 Business" />
+            <Button android:id="@+id/btnBusinessMode" style="@style/AiChip" android:text="\uD83D\uDCBC Business" android:contentDescription="Rewrite in business tone" />
             <Button android:id="@+id/btnTonePolite" style="@style/AiChip" android:text="Polite" />
             <Button android:id="@+id/btnToneConfident" style="@style/AiChip" android:text="Confident" />
-            <Button android:id="@+id/btnShorten" style="@style/AiChip" android:text="✂️ Shorten" />
-            <Button android:id="@+id/btnExpand" style="@style/AiChip" android:text="↔️ Expand" />
-            <Button android:id="@+id/btnTranslate" style="@style/AiChip" android:text="🌐 Translate" />
-            <Button android:id="@+id/btnDecline" style="@style/AiChip" android:text="🚫 Decline" />
+            <Button android:id="@+id/btnShorten" style="@style/AiChip" android:text="\u2702\uFE0F Shorten" android:contentDescription="Shorten this text" />
+            <Button android:id="@+id/btnExpand" style="@style/AiChip" android:text="\u2194\uFE0F Expand" android:contentDescription="Expand this text" />
+            <Button android:id="@+id/btnTranslate" style="@style/AiChip" android:text="\uD83C\uDF10 Translate" android:contentDescription="Translate this text" />
+            <Button android:id="@+id/btnDecline" style="@style/AiChip" android:text="\uD83D\uDEAB Decline" android:contentDescription="Suggest a polite decline" />
             <Button android:id="@+id/btnSelectAll" style="@style/AiChip" android:text="Select All" />
             <Button android:id="@+id/btnCopy" style="@style/AiChip" android:text="Copy" />
             <Button android:id="@+id/btnCut" style="@style/AiChip" android:text="Cut" />
             <Button android:id="@+id/btnPaste" style="@style/AiChip" android:text="Paste" />
-            <Button android:id="@+id/btnGoogleSearch" style="@style/AiChip" android:text="🔍 Search" />
+            <Button android:id="@+id/btnGoogleSearch" style="@style/AiChip" android:text="\uD83D\uDD0D Search" android:contentDescription="Search Google for this text" />
 
         </LinearLayout>
     </HorizontalScrollView>
