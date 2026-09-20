@@ -205,7 +205,7 @@
         <Button
             android:id="@+id/btnMic"
             style="@style/AiChip"
-            android:text="\uD83C\uDF A4"
+            android:text="\uD83C\uDFA4"
             android:contentDescription="Voice input" />
 
     </LinearLayout>
