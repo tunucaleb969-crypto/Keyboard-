@@ -679,7 +679,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         // NEXT words based on the word just finished, instead of prefix-matching an empty string.
         if (currentWord.isBlank() && before.endsWith(" ")) {
             val previousWord = before.trim().substringAfterLast(" ")
-            val predicted = NextWordPredictor.predict(previousWord)
+            val predicted = NextWordPredictor.predict(this, previousWord)
             if (predicted.isNotEmpty()) {
                 wordButtons.forEachIndexed { index, btn ->
                     val word = predicted.getOrNull(index)
@@ -875,9 +875,26 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
         ic.commitText(" ", 1)
         wordButtons.forEach { it.visibility = View.GONE }
+        recordCompletedWordBigram(ic)
         checkLastWordNow()
         maybeAutoCapitalize(ic)
         updateWordSuggestions()
+    }
+
+    /**
+     * After a word is finished (space just committed), records "previous word -> that
+     * word" so NextWordPredictor can learn this user's own phrasing over time. Never
+     * runs in sensitive fields, and respects the next-word-learning toggle.
+     */
+    private fun recordCompletedWordBigram(ic: InputConnection) {
+        if (isSensitiveField) return
+        if (!Prefs.getNextWordLearningEnabled(this)) return
+        val before = ic.getTextBeforeCursor(80, 0)?.toString().orEmpty().trimEnd()
+        val words = before.split(Regex("\\s+")).filter { it.isNotBlank() }
+        if (words.size < 2) return
+        val previousWord = words[words.size - 2]
+        val lastWord = words[words.size - 1]
+        Prefs.recordBigram(this, previousWord, lastWord)
     }
 
     private fun handlePunctuation(ic: InputConnection, char: Char) {
