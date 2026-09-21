@@ -76,6 +76,12 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private var lastCorrectionOriginal: String = ""
     private var lastCorrectionResult: String = ""
 
+    // Incremented on every new AI request. Async results only get applied if
+    // this still matches at completion time — so if the user cancels (or
+    // fires a newer request) while an old one is still in flight, the stale
+    // result can't pop the panel back open afterward.
+    private var aiRequestId = 0
+
     // Hinted numbers: maps top-row letters to digits for long-press
     private val hintedNumberMap = mapOf(
         'q' to '1', 'w' to '2', 'e' to '3', 'r' to '4', 't' to '5',
@@ -477,14 +483,28 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             return
         }
 
+        val requestId = ++aiRequestId
+        showThinking()
+
         scope.launch {
             aiClient.run(task, fullText).onSuccess { result ->
                 AiResponseCache.putSingle(task, fullText, result)
-                handleAiSingleResult(result, before, after, replaceText, showInPreviewOnly)
+                if (requestId == aiRequestId) {
+                    handleAiSingleResult(result, before, after, replaceText, showInPreviewOnly)
+                }
             }.onFailure {
-                toast("AI request failed: ${it.message}")
+                if (requestId == aiRequestId) {
+                    hidePreview()
+                    toast("AI request failed: ${it.message}")
+                }
             }
         }
+    }
+
+    private fun showThinking() {
+        previewText.text = "Thinking\u2026"
+        previewPanel.visibility = View.VISIBLE
+        keyboardView.visibility = View.GONE
     }
 
     private fun handleAiSingleResult(result: String, before: String, after: String, replaceText: Boolean, showInPreviewOnly: Boolean) {
@@ -537,21 +557,41 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             return
         }
 
+        val requestId = ++aiRequestId
+        showMultiLoading()
+
         scope.launch {
             aiClient.runMulti(task, fullText).onSuccess { options ->
                 if (options.isEmpty()) {
-                    toast("No suggestions came back \u2014 try again")
+                    if (requestId == aiRequestId) {
+                        hideMultiPanel()
+                        toast("No suggestions came back \u2014 try again")
+                    }
                     return@onSuccess
                 }
                 AiResponseCache.putMulti(task, fullText, options)
-                multiBefore = before
-                multiAfter = after
-                multiReplaces = replaceText
-                showMultiPanel(options)
+                if (requestId == aiRequestId) {
+                    multiBefore = before
+                    multiAfter = after
+                    multiReplaces = replaceText
+                    showMultiPanel(options)
+                }
             }.onFailure {
-                toast("AI request failed: ${it.message}")
+                if (requestId == aiRequestId) {
+                    hideMultiPanel()
+                    toast("AI request failed: ${it.message}")
+                }
             }
         }
+    }
+
+    private fun showMultiLoading() {
+        option1.text = "Thinking\u2026"
+        option1.setOnClickListener(null)
+        option2.visibility = View.GONE
+        option3.visibility = View.GONE
+        multiPanel.visibility = View.VISIBLE
+        keyboardView.visibility = View.GONE
     }
 
     private fun showMultiPanel(options: List<String>) {
