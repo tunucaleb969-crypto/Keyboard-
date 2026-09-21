@@ -1,7 +1,11 @@
 package com.kwame.aikeyboard
 
+import android.content.Context
+
 object NextWordPredictor {
     // Maps a word to its most likely next words, based on common English phrase patterns.
+    // This is the fixed fallback list; personal learned associations (see Prefs.recordBigram)
+    // are ranked ahead of these since they reflect how this specific user actually writes.
     private val predictions = mapOf(
         "how" to listOf("are", "do", "much"),
         "thank" to listOf("you"),
@@ -39,8 +43,19 @@ object NextWordPredictor {
         "the" to listOf("same", "best", "first")
     )
 
-    fun predict(previousWord: String): List<String> {
+    /**
+     * Predicts likely next words given [previousWord]. Personal words this user has
+     * actually typed after [previousWord] (see [Prefs.recordBigram]) are ranked first,
+     * most-used first, then padded out with the fixed built-in list. Respects the
+     * "next word learning" toggle so a user who disables learning falls back to the
+     * static list only.
+     */
+    fun predict(context: Context, previousWord: String): List<String> {
         if (previousWord.isBlank()) return emptyList()
-        return predictions[previousWord.lowercase()] ?: emptyList()
+        val learned = if (Prefs.getNextWordLearningEnabled(context)) {
+            Prefs.getLearnedNextWords(context, previousWord)
+        } else emptyList()
+        val builtIn = predictions[previousWord.lowercase()] ?: emptyList()
+        return (learned + builtIn).distinct().take(3)
     }
 }
