@@ -41,6 +41,14 @@ object Prefs {
     // New: last-remembered caps state (for "remember caps lock state")
     private const val KEY_LAST_CAPS_LOCK = "last_caps_lock_state"
 
+    // New: personal next-word learning (bigrams the user has actually typed)
+    private const val KEY_LEARNED_BIGRAMS = "learned_next_word_bigrams"
+    private const val BIGRAM_ENTRY_DIVIDER = "\u0004"
+    private const val BIGRAM_WORD_DIVIDER = "\u0005"
+    private const val MAX_BIGRAM_KEYS = 500
+    private const val MAX_NEXT_WORDS_PER_KEY = 5
+    private const val KEY_NEXTWORD_LEARNING = "next_word_learning_enabled"
+
     fun getApiKey(context: Context): String =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_API, "") ?: ""
 
@@ -310,5 +318,85 @@ object Prefs {
 
     fun setLastCapsLockState(context: Context, value: Boolean) {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_LAST_CAPS_LOCK, value).apply()
+    }
+
+    // ---- Personal next-word learning ----
+    // Learns, per previous word, which words this specific user tends to type next —
+    // separate from the fixed built-in NextWordPredictor phrase list, and separate from
+    // the personal *dictionary* (which is about known/whitelisted words, not sequences).
+    // Never recorded for sensitive fields (see AIKeyboardService.isSensitiveField) or when
+    // this toggle is off, and can be wiped entirely via clearLearnedBigrams().
+
+    fun getNextWordLearningEnabled(context: Context): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_NEXTWORD_LEARNING, true)
+
+    fun setNextWordLearningEnabled(context: Context, value: Boolean) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_NEXTWORD_LEARNING, value).apply()
+    }
+
+    /** Returns learned follow-up words for [previousWord], most-typed first. */
+    fun getLearnedNextWords(context: Context, previousWord: String): List<String> {
+        if (previousWord.isBlank()) return emptyList()
+        val raw = context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_LEARNED_BIGRAMS, "") ?: ""
+        if (raw.isBlank()) return emptyList()
+        val key = previousWord.lowercase()
+        for (entry in raw.split(BIGRAM_ENTRY_DIVIDER)) {
+            val parts = entry.split(BIGRAM_WORD_DIVIDER)
+            if (parts.size != 2 || !parts[0].equals(key, ignoreCase = true)) continue
+            return parts[1].split(",")
+                .mapNotNull { pair ->
+                    val bits = pair.split(":")
+                    val word = bits.getOrNull(0)?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                    val count = bits.getOrNull(1)?.toIntOrNull() ?: 1
+                    word to count
+                }
+                .sortedByDescending { it.second }
+                .map { it.first }
+        }
+        return emptyList()
+    }
+
+    /** Records that [nextWord] followed [previousWord], strengthening that association. */
+    fun recordBigram(context: Context, previousWord: String, nextWord: String) {
+        val prev = previousWord.trim().lowercase()
+        val next = nextWord.trim()
+        if (prev.length < 2 || next.length < 2) return
+        if (!prev.any { it.isLetter() } || !next.any { it.isLetter() }) return
+
+        val prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+        val raw = prefs.getString(KEY_LEARNED_BIGRAMS, "") ?: ""
+        val entries = if (raw.isBlank()) mutableListOf() else raw.split(BIGRAM_ENTRY_DIVIDER).toMutableList()
+
+        var found = false
+        for (i in entries.indices) {
+            val parts = entries[i].split(BIGRAM_WORD_DIVIDER)
+            if (parts.size != 2 || !parts[0].equals(prev, ignoreCase = true)) continue
+            found = true
+            val counts = parts[1].split(",").mapNotNull { pair ->
+                val bits = pair.split(":")
+                val w = bits.getOrNull(0)?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                val c = bits.getOrNull(1)?.toIntOrNull() ?: 1
+                w to c
+            }.toMutableList()
+            val existingIndex = counts.indexOfFirst { it.first.equals(next, ignoreCase = true) }
+            if (existingIndex >= 0) {
+                counts[existingIndex] = counts[existingIndex].first to (counts[existingIndex].second + 1)
+            } else {
+                counts.add(next to 1)
+            }
+            val trimmedCounts = counts.sortedByDescending { it.second }.take(MAX_NEXT_WORDS_PER_KEY)
+            entries[i] = prev + BIGRAM_WORD_DIVIDER + trimmedCounts.joinToString(",") { "${it.first}:${it.second}" }
+            break
+        }
+        if (!found) {
+            entries.add(0, prev + BIGRAM_WORD_DIVIDER + "$next:1")
+        }
+        val trimmedEntries = entries.take(MAX_BIGRAM_KEYS)
+        prefs.edit().putString(KEY_LEARNED_BIGRAMS, trimmedEntries.joinToString(BIGRAM_ENTRY_DIVIDER)).apply()
+    }
+
+    /** Wipes all personally-learned next-word associations (not the fixed dictionary words). */
+    fun clearLearnedBigrams(context: Context) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().remove(KEY_LEARNED_BIGRAMS).apply()
     }
 }
