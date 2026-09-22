@@ -91,6 +91,9 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private var longPressTriggered = false
     private var pressedKeyChar: Char? = null
 
+    // Long-pressing the comma key opens Keyboard Settings; a normal tap still inserts ",".
+    private var commaLongPressRunnable: Runnable? = null
+
     private val aiClient: AIClient
         get() = AIClient(Prefs.getApiKey(this))
 
@@ -1052,6 +1055,14 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
 
     /** Detects long-press on top-row letters to insert the hinted number instead, if enabled. */
     override fun onPress(primaryCode: Int) {
+        if (primaryCode == 44 && !onSymbols) {
+            val delay = Prefs.getLongPressDelay(this).toLong()
+            commaLongPressRunnable = Runnable {
+                longPressTriggered = true
+                openKeyboardSettings()
+            }
+            debounceHandler.postDelayed(commaLongPressRunnable!!, delay)
+        }
         if (!Prefs.getHintedNumbersEnabled(this) || onSymbols) return
         val char = primaryCode.toChar().lowercaseChar()
         if (char !in hintedNumberMap) return
@@ -1070,10 +1081,21 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     override fun onRelease(primaryCode: Int) {
         longPressRunnable?.let { debounceHandler.removeCallbacks(it) }
         longPressRunnable = null
+        commaLongPressRunnable?.let { debounceHandler.removeCallbacks(it) }
+        commaLongPressRunnable = null
         pressedKeyChar = null
     }
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+
+    /** Opens the keyboard's Settings screen (triggered by long-pressing the comma key). */
+    private fun openKeyboardSettings() {
+        playKeyFeedback()
+        val intent = Intent(this, SettingsActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
+    }
 
     override fun onText(text: CharSequence?) {}
 
