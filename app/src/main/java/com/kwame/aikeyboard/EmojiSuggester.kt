@@ -42,22 +42,22 @@ object EmojiSuggester {
         "\uD83D\uDC0E","\uD83D\uDC10","\uD83D\uDC11","\uD83D\uDC15","\uD83D\uDC29","\uD83D\uDC13","\uD83E\uDD83","\uD83D\uDD4A\uFE0F",
         "\uD83D\uDC07","\uD83E\uDD94",
         // Food / drink
-        "\uD83C\uDF47","\uD83C\uDF48","\uD83C\uDF49","\uD83C\uDF4A","\uD83C\uDF4B","\uD83C\uDF4C","\uD83C\uDF4D","\uD83E\uDD6D",
-        "\uD83C\uDF4E","\uD83C\uDF4F","\uD83C\uDF50","\uD83C\uDF51","\uD83C\uDF52","\uD83E\uDD5D","\uD83C\uDF45","\uD83E\uDD51",
-        "\uD83E\uDD51","\uD83E\uDD51","\uD83C\uDF46","\uD83E\uDD54","\uD83C\uDF3D","\uD83C\uDF36\uFE0F","\uD83E\uDD52","\uD83E\uDD6C",
+        "\uD83C\uDF47","\uD83C\uDF48","\uD83C\uDF49","\uD83C\uDF4A","\uD83C\uDF4B","\uD83C\uDF4C","\uD83C\uDF4D","\uD83E\uDD6d",
+        "\uD83C\uDF4E","\uD83C\uDF4F","\uD83C\uDF50","\uD83C\uDF51","\uD83C\uDF52","\uD83E\uDD5d","\uD83C\uDF45","\uD83E\uDD51",
+        "\uD83E\uDD51","\uD83E\uDD51","\uD83C\uDF46","\uD83E\uDD54","\uD83C\uDF3D","\uD83C\uDF36\uFE0F","\uD83E\uDD52","\uD83E\uDD6c",
         "\uD83E\uDD84","\uD83C\uDF44","\uD83E\uDD5C","\uD83C\uDF30","\uD83C\uDF5E","\uD83E\uDD50","\uD83E\uDD56","\uD83E\uDDC0",
         "\uD83C\uDF56","\uD83C\uDF57","\uD83E\uDD69","\uD83E\uDD53","\uD83C\uDF54","\uD83C\uDF5F","\uD83C\uDF55","\uD83C\uDF2D",
         "\uD83C\uDF2E","\uD83E\uDD59","\uD83E\uDD5A","\uD83C\uDF73","\uD83C\uDF72","\uD83E\uDD58","\uD83C\uDF5C","\uD83C\uDF5D",
-        "\uD83C\uDF60","\uD83C\uDF61","\uD83C\uDF63","\uD83C\uDF64","\uD83C\uDF65","\uD83E\uDD5F","\uD83E\uDD60","\uD83E\uDD9E",
+        "\uD83C\uDF60","\uD83C\uDF61","\uD83C\uDF63","\uD83C\uDF64","\uD83C\uDF65","\uD83E\uDD5F","\uD83E\uDD60","\uD83E\uDD9e",
         "\uD83C\uDF66","\uD83C\uDF67","\uD83C\uDF68","\uD83C\uDF69","\uD83C\uDF6A","\uD83C\uDF82","\uD83C\uDF70","\uD83E\uDDC1",
         "\uD83C\uDF6B","\uD83C\uDF6C","\uD83C\uDF6D","\uD83C\uDF6E","\uD83C\uDF6F","\uD83C\uDF7C","\u2615","\uD83C\uDF75",
-        "\uD83E\uDD64","\uD83E\uDD43","\uD83C\uDF7E","\uD83C\uDF7B","\uD83C\uDF7A","\uD83E\uDD42","\uD83C\uDF77",
+        "\uD83E\uDD64","\uD83E\uDD43","\uD83C\uDF7E","\uD83C\uDF7b","\uD83C\uDF7a","\uD83E\uDD42","\uD83C\uDF77",
         // Activities / sports
         "\u26BD","\uD83C\uDFC0","\uD83C\uDFC8","\u26BE","\uD83C\uDFBE","\uD83C\uDFD0","\uD83C\uDFC9","\uD83C\uDFB1",
         "\uD83C\uDFD3","\uD83C\uDFF8","\uD83C\uDFA3","\uD83E\uDD3F","\uD83C\uDFAF","\uD83C\uDFAE","\uD83C\uDFB2","\uD83C\uDFC6",
         "\uD83E\uDD47","\uD83E\uDD48","\uD83E\uDD49","\uD83C\uDFC5","\uD83C\uDF9F\uFE0F","\uD83C\uDFAA","\uD83C\uDFAD","\uD83C\uDFA8",
-        "\uD83C\uDFAC","\uD83C\uDFA4","\uD83C\uDFA7","\uD83C\uDFBC","\uD83E\uDD41","\uD83C\uDFB7","\uD83C\uDFBA","\uD83C\uDFB8",
-        "\uD83C\uDFBB","\u265F\uFE0F","\uD83C\uDFAF","\uD83C\uDFB3","\uD83C\uDFAE",
+        "\uD83C\uDFAC","\uD83C\uDFA4","\uD83C\uDFA7","\uD83C\uDFBC","\uD83E\uDD41","\uD83C\uDFB7","\uD83C\uDFBa","\uD83C\uDFB8",
+        "\uD83C\uDFBC","\u265F\uFE0F","\uD83C\uDFAF","\uD83C\uDFB3","\uD83C\uDFAE",
         // Travel / places
         "\uD83D\uDE97","\uD83D\uDE95","\uD83D\uDE99","\uD83D\uDE8C","\uD83C\uDFCE\uFE0F","\uD83D\uDE93","\uD83D\uDE91","\uD83D\uDE92",
         "\uD83D\uDE90","\uD83D\uDE9A","\uD83D\uDE9B","\uD83D\uDE9C","\uD83D\uDEB2","\uD83D\uDEF5","\uD83C\uDFCD\uFE0F","\uD83D\uDEA8",
@@ -65,7 +65,7 @@ object EmojiSuggester {
         "\uD83D\uDEE5\uFE0F","\uD83D\uDEA2","\u2693","\u26FD","\uD83D\uDEA6","\uD83D\uDEA5","\uD83D\uDDFA\uFE0F","\uD83D\uDDFD",
         "\uD83D\uDDFC","\uD83C\uDFF0","\uD83C\uDFA1","\uD83C\uDFA2","\u26F2","\uD83C\uDFD6\uFE0F","\uD83C\uDF0B","\u26F0\uFE0F",
         "\uD83C\uDFD4\uFE0F","\u26FA","\uD83C\uDFE0","\uD83C\uDFE1","\uD83C\uDFE2","\uD83C\uDFE5","\uD83C\uDFE6","\uD83C\uDFE8",
-        "\uD83C\uDFEB","\u26EA","\uD83D\uDD4C","\uD83D\uDD4D","\uD83C\uDF05","\uD83C\uDF04","\uD83C\uDF20","\uD83C\uDF07",
+        "\uD83C\uDFEB","\u26EA","\uD83D\uDD4C","\uD83D\uDD4C","\uD83C\uDF05","\uD83C\uDF04","\uD83C\uDF20","\uD83C\uDF07",
         "\uD83C\uDF06","\uD83C\uDF03","\uD83C\uDF09",
         // Nature / weather
         "\uD83C\uDF31","\uD83C\uDF32","\uD83C\uDF33","\uD83C\uDF34","\uD83C\uDF35","\uD83C\uDF3E","\u2618\uFE0F","\uD83C\uDF40",
@@ -81,10 +81,10 @@ object EmojiSuggester {
         "\uD83D\uDCB8","\uD83D\uDCB5","\uD83D\uDCB4","\uD83D\uDCB6","\uD83D\uDCB7","\uD83E\uDE99","\uD83D\uDCB0","\uD83D\uDCB3",
         "\uD83D\uDC8E","\uD83D\uDD27","\uD83D\uDD28","\u2699\uFE0F","\uD83E\uDDF2","\uD83D\uDD2B","\uD83D\uDD2A","\u2694\uFE0F",
         "\uD83D\uDEE1\uFE0F","\u26B0\uFE0F","\uD83D\uDD2E","\uD83D\uDCFF","\uD83D\uDD2D","\uD83D\uDC8A","\uD83E\uDE78","\uD83D\uDEAA",
-        "\uD83E\uDE9E","\uD83D\uDECB\uFE0F","\uD83E\uDE91","\uD83D\uDEBD","\uD83D\uDEBF","\uD83D\uDEC1","\uD83E\uDDF4","\uD83E\uDDF9",
-        "\uD83E\uDDFB","\uD83E\uDDFC","\uD83E\uDDFD","\uD83D\uDED2",
+        "\uD83E\uDE9e","\uD83D\uDECB\uFE0F","\uD83E\uDE91","\uD83D\uDEBD","\uD83D\uDEBf","\uD83D\uDEC1","\uD83E\uDDF4","\uD83E\uDDF9",
+        "\uD83E\uDDFb","\uD83E\uDDFc","\uD83E\uDDFd","\uD83D\uDED2",
         // Check / cross / emphasis
-        "\u2705","\u274C","\uD83D\uDCAC","\uD83D\uDCE9","\uD83E\uDD7A"
+        "\u2705","\u274C","\uD83D\uDCAC","\uD83D\uDCE9","\uD83E\uDD7a"
     )
 
     private val wordToEmoji = mapOf(
@@ -111,6 +111,9 @@ object EmojiSuggester {
         "clap" to "\uD83D\uDC4F", "muscle" to "\uD83D\uDCAA", "crown" to "\uD83D\uDC51", "trophy" to "\uD83C\uDFC6",
         "rocket" to "\uD83D\uDE80", "sick" to "\uD83E\uDD12", "scared" to "\uD83D\uDE28", "laughing" to "\uD83D\uDE02"
     )
+
+    /** Returns a matching emoji for a completed word (e.g. "happy" -> 😊), or null if none maps. */
+    fun suggestForWord(word: String): String? = wordToEmoji[word.trim().lowercase()]
 
     // Maps each emoji to a list of searchable keywords, for the emoji search box.
     private val emojiKeywords = mapOf(
@@ -162,7 +165,7 @@ object EmojiSuggester {
         "\u274C" to listOf("cross", "no", "wrong"),
         "\uD83D\uDCAC" to listOf("chat", "message", "speech"),
         "\uD83D\uDCE9" to listOf("mail", "email", "message"),
-        "\uD83E\uDD7A" to listOf("pleading", "puppy eyes", "please"),
+        "\uD83E\uDD7a" to listOf("pleading", "puppy eyes", "please"),
         "\uD83D\uDE0B" to listOf("yum", "delicious", "hungry"),
         "\uD83E\uDD29" to listOf("star struck", "amazed", "wow"),
         "\uD83E\uDD11" to listOf("money mouth", "rich"),
@@ -275,7 +278,7 @@ object EmojiSuggester {
         "\u2615" to listOf("coffee"),
         "\uD83C\uDF7C" to listOf("baby bottle", "milk"),
         "\uD83C\uDF7A" to listOf("beer"),
-        "\uD83C\uDF7B" to listOf("beers", "cheers"),
+        "\uD83C\uDF7b" to listOf("beers", "cheers"),
         "\uD83C\uDF77" to listOf("wine"),
         "\uD83E\uDD42" to listOf("champagne glass", "toast"),
         "\u26BD" to listOf("soccer", "football"),
