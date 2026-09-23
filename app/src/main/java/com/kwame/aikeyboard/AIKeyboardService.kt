@@ -755,7 +755,6 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         if (isSensitiveField) return
         if (!Prefs.getAutoCorrectEnabled(this)) return
         val ic = currentInputConnection ?: return
-        if (Prefs.getApiKey(this).isBlank()) return
 
         val fullBefore = ic.getTextBeforeCursor(60, 0)?.toString().orEmpty()
         val trimmed = fullBefore.trimEnd()
@@ -764,6 +763,15 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         if (word.length < 2) return
         if (word.lowercase() in ignoredWords) return
         if (!word.any { it.isLetter() }) return
+
+        // Fast, local, offline contraction fix (e.g. "dont" -> "don't") — no AI needed.
+        val expanded = ContractionExpander.expand(word)
+        if (expanded != null) {
+            applyLiveCheckCorrection(word, expanded)
+            return
+        }
+
+        if (Prefs.getApiKey(this).isBlank()) return
         if (WordSuggester.isKnownWord(word)) return
         if (Prefs.getDictionaryWords(this).any { it.equals(word, ignoreCase = true) }) return
 
