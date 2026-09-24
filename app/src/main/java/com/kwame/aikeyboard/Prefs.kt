@@ -49,6 +49,11 @@ object Prefs {
     private const val MAX_NEXT_WORDS_PER_KEY = 5
     private const val KEY_NEXTWORD_LEARNING = "next_word_learning_enabled"
 
+    // New: dedicated emoji-suggestion toggle. Previously the Emojis settings screen
+    // accidentally reused KEY_WORD_SUGGEST, so turning "Emoji suggestions" off silently
+    // disabled the whole word-suggestion bar too. This flag only gates the emoji button.
+    private const val KEY_EMOJI_SUGGEST = "emoji_suggestions_enabled"
+
     fun getApiKey(context: Context): String =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_API, "") ?: ""
 
@@ -398,5 +403,13 @@ object Prefs {
     /** Wipes all personally-learned next-word associations (not the fixed dictionary words). */
     fun clearLearnedBigrams(context: Context) {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().remove(KEY_LEARNED_BIGRAMS).apply()
+    }
+
+    /** Independent toggle for the emoji-suggestion button (separate from word suggestions). */
+    fun getEmojiSuggestionsEnabled(context: Context): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getBoolean(KEY_EMOJI_SUGGEST, true)
+
+    fun setEmojiSuggestionsEnabled(context: Context, value: Boolean) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).edit().putBoolean(KEY_EMOJI_SUGGEST, value).apply()
     }
 }
