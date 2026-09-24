@@ -76,6 +76,13 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private var lastCorrectionOriginal: String = ""
     private var lastCorrectionResult: String = ""
 
+    // Lets a just-accepted AI replacement (grammar fix, tone rewrite, etc.) be undone
+    // with a single backspace, the same way autocorrect can be. Only the single most
+    // recent action (AI or autocorrect) is undoable at a time.
+    private var lastAiOriginalBefore: String = ""
+    private var lastAiOriginalAfter: String = ""
+    private var lastAiResultText: String = ""
+
     // Incremented on every new AI request. Async results only get applied if
     // this still matches at completion time — so if the user cancels (or
     // fires a newer request) while an old one is still in flight, the stale
@@ -654,6 +661,11 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         ic.deleteSurroundingText(pendingBefore.length, pendingAfter.length)
         ic.commitText(pendingResult, 1)
         ic.endBatchEdit()
+        lastAiOriginalBefore = pendingBefore
+        lastAiOriginalAfter = pendingAfter
+        lastAiResultText = pendingResult
+        lastCorrectionOriginal = ""
+        lastCorrectionResult = ""
         hidePreview()
     }
 
@@ -809,6 +821,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         ignoredWords.add(word.lowercase())
         lastCorrectionOriginal = word
         lastCorrectionResult = corrected
+        lastAiResultText = ""
     }
 
     private fun tryUndoAutocorrect(ic: InputConnection): Boolean {
@@ -824,6 +837,29 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         ignoredWords.add(lastCorrectionOriginal.lowercase())
         lastCorrectionOriginal = ""
         lastCorrectionResult = ""
+        return true
+    }
+
+    /**
+     * Undoes the last accepted AI replacement (grammar/tone/etc.) with a single
+     * backspace, the same way autocorrect can be undone. Restores the original text as
+     * one combined block rather than preserving the exact original cursor split point —
+     * a reasonable trade-off since perfectly restoring cursor position mid-replacement
+     * isn't possible with InputConnection's commit-at-cursor model.
+     */
+    private fun tryUndoAiReplacement(ic: InputConnection): Boolean {
+        if (!Prefs.getUndoAutocorrectEnabled(this)) return false
+        if (lastAiResultText.isBlank()) return false
+        val before = ic.getTextBeforeCursor(lastAiResultText.length, 0)?.toString().orEmpty()
+        if (before != lastAiResultText) return false
+
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(lastAiResultText.length, 0)
+        ic.commitText(lastAiOriginalBefore + lastAiOriginalAfter, 1)
+        ic.endBatchEdit()
+        lastAiResultText = ""
+        lastAiOriginalBefore = ""
+        lastAiOriginalAfter = ""
         return true
     }
 
@@ -986,7 +1022,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         when (primaryCode) {
             Keyboard.KEYCODE_DELETE -> {
                 playKeyFeedback(isRepeatedAction = true)
-                if (!tryUndoAutocorrect(ic)) {
+                if (!tryUndoAutocorrect(ic) && !tryUndoAiReplacement(ic)) {
                     val selected = ic.getSelectedText(0)
                     if (!selected.isNullOrEmpty()) {
                         ic.commitText("", 1)
