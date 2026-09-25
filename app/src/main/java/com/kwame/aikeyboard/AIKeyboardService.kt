@@ -706,7 +706,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                     }
                 }
                 val lastWordForEmoji = before.trim().substringAfterLast(" ")
-                val emoji = if (lastWordForEmoji.isNotBlank()) EmojiSuggester.suggestForWord(lastWordForEmoji) else null
+                val emoji = if (Prefs.getEmojiSuggestionsEnabled(this) && lastWordForEmoji.isNotBlank()) EmojiSuggester.suggestForWord(lastWordForEmoji) else null
                 if (emoji != null) {
                     emojiSuggestBtn.text = emoji
                     emojiSuggestBtn.visibility = View.VISIBLE
@@ -743,7 +743,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
 
         val lastWord = before.trim().substringAfterLast(" ")
-        val emoji = if (lastWord.isNotBlank()) EmojiSuggester.suggestForWord(lastWord) else null
+        val emoji = if (Prefs.getEmojiSuggestionsEnabled(this) && lastWord.isNotBlank()) EmojiSuggester.suggestForWord(lastWord) else null
         if (emoji != null && before.endsWith(" ")) {
             emojiSuggestBtn.text = emoji
             emojiSuggestBtn.visibility = View.VISIBLE
