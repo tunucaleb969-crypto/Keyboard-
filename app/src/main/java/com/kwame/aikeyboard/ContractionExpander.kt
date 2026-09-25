@@ -7,9 +7,10 @@ package com.kwame.aikeyboard
  *
  * Only includes forms that are NOT also valid standalone English words, so a genuine
  * word is never silently rewritten. Deliberately excludes ambiguous cases such as
- * "ill" (sick), "well" (adverb), "wed" (to marry) and "were" (past tense of "are") —
- * these stay untouched and, if genuinely misspelled, still go through the existing
- * AI-based livecheck correction instead.
+ * "ill" (sick), "well" (adverb), "wed" (to marry), "were" (past tense of "are"), and
+ * "wont" (archaic noun/verb meaning habit/custom — already a recognized word in
+ * WordSuggester's own dictionary) — these stay untouched and, if genuinely misspelled,
+ * still go through the existing AI-based livecheck correction instead.
  */
 object ContractionExpander {
     private val expansions = mapOf(
@@ -42,7 +43,6 @@ object ContractionExpander {
         "arent" to "aren't",
         "wasnt" to "wasn't",
         "werent" to "weren't",
-        "wont" to "won't",
         "wouldnt" to "wouldn't",
         "couldnt" to "couldn't",
         "shouldnt" to "shouldn't",
