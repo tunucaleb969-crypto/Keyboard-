@@ -13,7 +13,7 @@ class EmojisActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.btnBack).setOnClickListener { finish() }
 
         val switchEmojiSuggest = findViewById<Switch>(R.id.switchEmojiSuggest)
-        switchEmojiSuggest.isChecked = Prefs.getWordSuggestionsEnabled(this)
-        switchEmojiSuggest.setOnCheckedChangeListener { _, checked -> Prefs.setWordSuggestionsEnabled(this, checked) }
+        switchEmojiSuggest.isChecked = Prefs.getEmojiSuggestionsEnabled(this)
+        switchEmojiSuggest.setOnCheckedChangeListener { _, checked -> Prefs.setEmojiSuggestionsEnabled(this, checked) }
     }
 }
