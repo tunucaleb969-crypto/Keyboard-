@@ -23,6 +23,7 @@ import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionListener {
@@ -1208,5 +1209,9 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     override fun onDestroy() {
         super.onDestroy()
         debounceHandler.removeCallbacksAndMessages(null)
+        // Cancels any in-flight AI request (grammar/tone/livecheck) — without this, a
+        // network call could keep running and eventually try to touch a dead
+        // InputConnection, wasting battery/network for no visible result.
+        scope.cancel()
     }
 }
