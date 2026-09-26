@@ -357,10 +357,13 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private fun toggleEmojiPanel() {
         if (emojiPanel.visibility == View.VISIBLE) {
             emojiPanel.visibility = View.GONE
+            keyboardView.visibility = View.VISIBLE
             return
         }
+        clipboardPanel.visibility = View.GONE
         renderEmojiGrid(showRecentsFirst = true)
         emojiPanel.visibility = View.VISIBLE
+        keyboardView.visibility = View.GONE
     }
 
     private fun renderEmojiGrid(showRecentsFirst: Boolean, searchQuery: String = "") {
@@ -400,8 +403,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private fun toggleClipboardPanel() {
         if (clipboardPanel.visibility == View.VISIBLE) {
             clipboardPanel.visibility = View.GONE
+            keyboardView.visibility = View.VISIBLE
             return
         }
+        emojiPanel.visibility = View.GONE
         val currentClip = clipboardManager.primaryClip
             ?.takeIf { it.itemCount > 0 }
             ?.getItemAt(0)?.text?.toString()
@@ -410,6 +415,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
         renderClipboardList()
         clipboardPanel.visibility = View.VISIBLE
+        keyboardView.visibility = View.GONE
     }
 
     private fun renderClipboardList() {
