@@ -1,0 +1,14 @@
+# Seed/test correction data — hand-curated for testing only, NOT the final production dataset.
+# These are bundled known-typo entries (a supplement to the general correction algorithm
+# planned for Phase 2 of the autocorrection add-on), not the algorithm itself.
+# Format: misspelling<TAB>correction<TAB>confidence(optional, 0.0-1.0)
+teh	the	0.98
+hte	the	0.95
+recieve	receive	0.97
+becuase	because	0.97
+thier	their	0.96
+adn	and	0.9
+woudl	would	0.93
+seperate	separate	0.9
+definately	definitely	0.92
+occured	occurred	0.9
