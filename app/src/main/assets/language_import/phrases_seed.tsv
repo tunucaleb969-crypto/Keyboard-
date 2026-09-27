@@ -1,0 +1,7 @@
+# Seed/test phrase data — hand-curated for testing only, NOT the final production dataset.
+# Format: phrase<TAB>frequency(optional)
+thank you so much	80
+looking forward to it	60
+let me know	70
+new york	50
+how are you	90
