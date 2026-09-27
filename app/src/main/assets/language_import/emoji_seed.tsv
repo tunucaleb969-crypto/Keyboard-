@@ -1,0 +1,8 @@
+# Seed/test emoji association data — hand-curated for testing only, NOT the final production dataset.
+# Format: word<TAB>emoji
+love	❤️
+laugh	😂
+sad	😢
+fire	🔥
+party	🎉
+ghana	🇬🇭
