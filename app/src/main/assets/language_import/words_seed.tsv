@@ -1,0 +1,144 @@
+# Seed/test word data — hand-curated for testing only, NOT the final production dataset.
+# Format: word<TAB>frequency<TAB>category<TAB>region(optional)
+the	100000	common	
+be	95000	common	
+to	93000	common	
+of	91000	common	
+and	89000	common	
+a	87000	common	
+in	85000	common	
+that	70000	common	
+have	68000	common	
+it	66000	common	
+for	64000	common	
+not	62000	common	
+on	60000	common	
+with	58000	common	
+he	56000	common	
+as	54000	common	
+you	70000	common	
+do	52000	common	
+at	50000	common	
+this	60000	common	
+but	48000	common	
+his	46000	common	
+by	44000	common	
+from	42000	common	
+they	58000	common	
+we	57000	common	
+say	40000	common	
+her	38000	common	
+she	55000	common	
+or	50000	common	
+an	36000	common	
+will	45000	common	
+my	43000	common	
+one	41000	common	
+all	48000	common	
+would	39000	common	
+there	37000	common	
+their	35000	common	
+what	46000	common	
+so	44000	common	
+up	42000	common	
+out	40000	common	
+if	38000	common	
+about	36000	common	
+who	34000	common	
+get	39000	common	
+which	32000	common	
+go	37000	common	
+me	41000	common	
+when	40000	common	
+make	33000	common	
+can	48000	common	
+like	38000	common	
+time	42000	common	
+no	40000	common	
+just	37000	common	
+him	30000	common	
+know	35000	common	
+take	31000	common	
+people	33000	common	
+into	29000	common	
+year	28000	common	
+your	36000	common	
+good	32000	common	
+some	34000	common	
+could	31000	common	
+them	30000	common	
+see	29000	common	
+other	28000	common	
+than	27000	common	
+then	31000	common	
+now	32000	common	
+look	26000	common	
+only	27000	common	
+come	28000	common	
+its	29000	common	
+over	25000	common	
+think	26000	common	
+also	25000	common	
+back	24000	common	
+after	23000	common	
+use	22000	common	
+two	24000	common	
+how	28000	common	
+our	26000	common	
+work	25000	common	
+first	24000	common	
+well	23000	common	
+way	22000	common	
+even	21000	common	
+new	23000	common	
+want	22000	common	
+because	21000	common	
+any	20000	common	
+these	22000	common	
+give	19000	common	
+day	21000	common	
+most	18000	common	
+us	20000	common	
+paste	9000	technical	
+computer	8500	technical	
+laptop	4000	technical	
+software	6000	technical	
+keyboard	5000	technical	
+internet	7000	technical	
+email	7500	technical	
+password	5500	technical	
+download	5000	technical	
+upload	3000	technical	
+username	3500	technical	
+wifi	6000	technical	
+bluetooth	3000	technical	
+smartphone	4000	technical	
+android	5000	technical	
+London	9000	place	UK
+Paris	9000	place	
+Accra	4000	place	GH
+Kumasi	2000	place	GH
+Takoradi	1500	place	GH
+Ashaiman	800	place	GH
+Lagos	3000	place	
+Tokyo	4000	place	
+Ghana	5000	place	GH
+Nigeria	3500	place	
+Kwame	1200	name	GH
+Ama	900	name	GH
+Kofi	1000	name	GH
+Akosua	700	name	GH
+Yaw	600	name	GH
+Esi	500	name	GH
+Sarah	3000	name	
+Michael	2800	name	
+Grace	2000	name	
+lol	9000	slang	
+omg	7000	slang	
+btw	5000	slang	
+asap	4000	slang	
+fyi	3000	slang	
+diy	2000	abbreviation	
+faq	2500	abbreviation	
+etc	5000	abbreviation	
+info	4000	abbreviation	
