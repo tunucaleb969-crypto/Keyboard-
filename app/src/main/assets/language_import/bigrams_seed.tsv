@@ -1,0 +1,12 @@
+# Seed/test bigram data — hand-curated for testing only, NOT the final production dataset.
+# Format: previous_word<TAB>next_word<TAB>frequency(optional)
+thank	you	100
+how	are	80
+good	morning	70
+i	am	90
+see	you	60
+let	me	55
+looking	forward	50
+i	will	65
+you	are	70
+new	york	40
