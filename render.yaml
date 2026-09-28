@@ -17,3 +17,5 @@ services:
         sync: false             # Render asks you for this in the dashboard; never stored in git
       - key: APP_SHARED_SECRET
         generateValue: true     # Render creates a random secret; read it from Environment tab
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "120"            # the keyboard's per-word spell check shares this budget
