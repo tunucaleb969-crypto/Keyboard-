@@ -39,4 +39,12 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
+@app.get("/healthz")
+async def healthz() -> dict:
+    # Shallow liveness probe for the hosting platform (Render health checks).
+    # Deliberately: no auth, no Gemini call, no rate limit. It only proves the
+    # process is up. The deep check lives at /api/v1/health (needs X-App-Key).
+    return {"status": "ok"}
+
+
 app.include_router(keyboard_router)
