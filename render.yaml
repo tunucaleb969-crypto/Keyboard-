@@ -1,0 +1,19 @@
+# Render Blueprint for the AI Keyboard Gateway (backend/ folder only).
+# Field names checked against Render's Blueprint YAML reference.
+services:
+  - type: web
+    name: ai-keyboard-gateway
+    runtime: python
+    plan: free            # sleeps after 15 min idle; first request after that takes ~1 min
+    rootDir: backend      # the repo root is the Android project; the API lives in backend/
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz   # shallow, unauthenticated, never calls Gemini
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8           # same major/minor as the CI tests (3.12)
+      - key: GEMINI_API_KEY
+        sync: false             # Render asks you for this in the dashboard; never stored in git
+      - key: APP_SHARED_SECRET
+        generateValue: true     # Render creates a random secret; read it from Environment tab
