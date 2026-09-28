@@ -13,18 +13,28 @@ class SqliteLanguageDataProvider(context: Context) : LanguageDataProvider {
 
     private val dbHelper = DictionaryDbHelper(context)
 
-    /** Escapes SQLite LIKE wildcards in user-typed text before it's used in a LIKE pattern. */
-    private fun escapeLikePattern(input: String): String =
-        input.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-
+    /**
+     * Prefix search implemented as an index range scan (normalized >= prefix AND
+     * normalized < prefix + U+FFFF) rather than LIKE 'prefix%'. In SQLite, LIKE is
+     * case-insensitive by default and can only use an index if the column was declared
+     * COLLATE NOCASE — ours is plain BINARY — so LIKE would silently degrade to a full
+     * table scan on every keystroke as the dictionary grows. A range comparison on the
+     * BINARY-collated, already-lowercased column uses idx_words_normalized directly.
+     *
+     * KNOWN LIMITATION (not benchmarked): ORDER BY frequency DESC still has to sort every
+     * row matching the prefix before LIMIT applies, so very short prefixes (1-2 letters)
+     * against a multi-million-row table may be slow. If that shows up in real measurement,
+     * the fix is a precomputed top-N-per-short-prefix table, not more indexes here.
+     */
     override fun wordsStartingWith(prefix: String, limit: Int): List<WordEntry> {
         if (prefix.isBlank()) return emptyList()
-        val pattern = escapeLikePattern(prefix.lowercase()) + "%"
+        val lower = prefix.lowercase()
+        val upper = lower + "\uFFFF"
         val db = dbHelper.readableDatabase
         val cursor = db.rawQuery(
             "SELECT word, frequency, category FROM words " +
-                "WHERE normalized LIKE ? ESCAPE '\\' ORDER BY frequency DESC LIMIT ?",
-            arrayOf(pattern, limit.toString())
+                "WHERE normalized >= ? AND normalized < ? ORDER BY frequency DESC LIMIT ?",
+            arrayOf(lower, upper, limit.toString())
         )
         val results = mutableListOf<WordEntry>()
         cursor.use {
