@@ -23,7 +23,10 @@ class GeminiProvider(AIProvider):
     def __init__(self, api_key: str, model: str):
         self._api_key = api_key
         self._model = model
-        self._client = httpx.AsyncClient(timeout=httpx.Timeout(connect=15.0, read=20.0))
+        # httpx.Timeout needs either a default value or all four settings.
+        # Passing only connect= and read= raises ValueError at startup (this crashed
+        # the Render deploy). Default 20s for read/write/pool, 15s to connect.
+        self._client = httpx.AsyncClient(timeout=httpx.Timeout(20.0, connect=15.0))
 
     async def generate(self, prompt: str, max_output_tokens: int = 500) -> str:
         url = f"{GEMINI_BASE_URL}/{self._model}:generateContent"
