@@ -20,11 +20,14 @@ import android.widget.GridLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import com.kwame.aikeyboard.language.DictionaryRepository
+import com.kwame.aikeyboard.language.LanguageDataImporter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionListener {
 
@@ -256,6 +259,18 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
 
         updateEnterKeyLabel()
+
+        // Incremental language-data import, off the main thread. Files whose content hash
+        // hasn't changed since the last run are skipped, so after the first launch this is
+        // a handful of cheap hash lookups. Failures are swallowed on purpose: typing must
+        // never depend on the optional dictionary layer being importable.
+        scope.launch {
+            try {
+                withContext(Dispatchers.IO) { LanguageDataImporter.importAll(this@AIKeyboardService) }
+            } catch (e: Exception) {
+                // Intentionally ignored — the keyboard works from its built-in lists regardless.
+            }
+        }
 
         return root
     }
@@ -713,7 +728,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
                     }
                 }
                 val lastWordForEmoji = before.trim().substringAfterLast(" ")
-                val emoji = if (Prefs.getEmojiSuggestionsEnabled(this) && lastWordForEmoji.isNotBlank()) EmojiSuggester.suggestForWord(lastWordForEmoji) else null
+                val emoji = if (Prefs.getEmojiSuggestionsEnabled(this) && lastWordForEmoji.isNotBlank()) {
+                    EmojiSuggester.suggestForWord(lastWordForEmoji)
+                        ?: DictionaryRepository.get(this).emojisFor(lastWordForEmoji).firstOrNull()
+                } else null
                 if (emoji != null) {
                     emojiSuggestBtn.text = emoji
                     emojiSuggestBtn.visibility = View.VISIBLE
@@ -729,7 +747,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             Prefs.getDictionaryWords(this).filter { it.startsWith(currentWord, ignoreCase = true) }
         } else emptyList()
         val builtIn = WordSuggester.suggest(currentWord)
-        var matches = (dictMatches + builtIn).distinct().take(3)
+        val databaseWords = if (currentWord.isNotBlank()) {
+            DictionaryRepository.get(this).wordsStartingWith(currentWord, limit = 5).map { it.word }
+        } else emptyList()
+        var matches = (dictMatches + builtIn + databaseWords).distinct().take(3)
 
         // Optionally fill a remaining slot with the most recent clipboard item.
         if (Prefs.getClipboardSuggestionsEnabled(this) && matches.size < 3) {
@@ -750,7 +771,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
 
         val lastWord = before.trim().substringAfterLast(" ")
-        val emoji = if (Prefs.getEmojiSuggestionsEnabled(this) && lastWord.isNotBlank()) EmojiSuggester.suggestForWord(lastWord) else null
+        val emoji = if (Prefs.getEmojiSuggestionsEnabled(this) && lastWord.isNotBlank()) {
+            EmojiSuggester.suggestForWord(lastWord)
+                ?: DictionaryRepository.get(this).emojisFor(lastWord).firstOrNull()
+        } else null
         if (emoji != null && before.endsWith(" ")) {
             emojiSuggestBtn.text = emoji
             emojiSuggestBtn.visibility = View.VISIBLE
@@ -790,8 +814,17 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             return
         }
 
+        // Bundled known-typo table from the language database (e.g. "teh" -> "the").
+        // Also local/offline. This is a lookup of curated entries, not a general algorithm.
+        val languageData = DictionaryRepository.get(this)
+        val bundledCorrection = languageData.lookupCorrection(word)
+        if (bundledCorrection != null) {
+            applyLiveCheckCorrection(word, bundledCorrection)
+            return
+        }
+
         if (Prefs.getApiKey(this).isBlank()) return
-        if (WordSuggester.isKnownWord(word)) return
+        if (WordSuggester.isKnownWord(word) || languageData.isKnownWord(word)) return
         if (Prefs.getDictionaryWords(this).any { it.equals(word, ignoreCase = true) }) return
 
         val cachedCorrection = AiResponseCache.getSingle("livecheck", word)
