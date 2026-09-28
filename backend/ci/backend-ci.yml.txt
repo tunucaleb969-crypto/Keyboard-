@@ -1,0 +1,33 @@
+# INERT COPY of the backend CI workflow.
+# GitHub only runs workflows located in <repo root>/.github/workflows/.
+# The automation token used to create this repo's files lacks the `workflow`
+# scope, so it could not create that file directly. To activate CI:
+#   GitHub web UI -> Add file -> Create new file -> name it
+#   .github/workflows/backend-ci.yml -> paste everything below the line -> Commit.
+# ---------------------------------------------------------------------------
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: python -m py_compile app/*.py app/providers/*.py app/routers/*.py
+      - run: pytest -v
