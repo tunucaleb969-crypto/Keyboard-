@@ -28,13 +28,16 @@ class FakeProvider:
     def __init__(self, response: str = "corrected text", fail: bool = False):
         self._response = response
         self._fail = fail
+        self.calls = 0
 
     async def generate(self, prompt: str, max_output_tokens: int = 500) -> str:
+        self.calls += 1
         if self._fail:
             raise ProviderError("simulated provider failure")
         return self._response
 
     async def health_check(self) -> bool:
+        self.calls += 1
         return not self._fail
 
     def get_capabilities(self) -> dict:
@@ -95,6 +98,17 @@ def test_health_reports_provider_status():
     response = client.get("/api/v1/health", headers=HEADERS)
     assert response.status_code == 200
     assert response.json()["provider_reachable"] is False
+
+
+def test_healthz_needs_no_auth_and_never_calls_the_provider():
+    # Render's health probe: must work without X-App-Key and must not spend
+    # Gemini quota, or every probe would cost a real API call.
+    fake = FakeProvider()
+    app_state["provider"] = fake
+    response = client.get("/healthz")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+    assert fake.calls == 0
 
 
 def test_rate_limit_blocks_after_configured_max(monkeypatch):
