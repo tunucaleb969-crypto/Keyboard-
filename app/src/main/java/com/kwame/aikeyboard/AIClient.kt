@@ -30,13 +30,10 @@ class AiGatewayException(message: String, val kind: Kind) : Exception(message) {
  *
  * The prompts now live on the server (backend/app/prompts.py), unchanged.
  */
-class AIClient(private val appKey: String) {
+class AIClient(private val appKey: String, gatewayBaseUrl: String) {
+    private val gatewayBaseUrl = gatewayBaseUrl.trim().trimEnd('/')
 
     companion object {
-        // Public address of the deployed gateway. Not a secret.
-        // TODO: replace with the real Render URL after deployment is verified.
-        const val GATEWAY_BASE_URL = "https://REPLACE-WITH-RENDER-SERVICE-URL"
-
         // Must match the max_length in backend/app/schemas.py.
         const val MAX_TEXT_CHARS = 4000
 
@@ -77,7 +74,7 @@ class AIClient(private val appKey: String) {
             if (!lastWarmUpMs.compareAndSet(last, now)) return
             warmUpScope.launch {
                 try {
-                    val request = Request.Builder().url("$GATEWAY_BASE_URL/healthz").get().build()
+                    val request = Request.Builder().url("$gatewayBaseUrl/healthz").get().build()
                     warmUpClient.newCall(request).execute().use { response ->
                         if (response.isSuccessful) coldUntilMs.set(0L)
                     }
@@ -128,13 +125,31 @@ class AIClient(private val appKey: String) {
     }
 
     private fun post(path: String, task: String, text: String): Result<JSONObject> {
+        if (gatewayBaseUrl.isBlank() || !(gatewayBaseUrl.startsWith("https://") || gatewayBaseUrl.startsWith("http://10.0.2.2"))) {
+            return Result.failure(AiGatewayException(
+                "Set the HTTPS AI gateway URL in Keyboard Settings first.",
+                AiGatewayException.Kind.SERVER
+            ))
+        }
+        if (appKey.isBlank()) {
+            return Result.failure(AiGatewayException(
+                "Enter the AI gateway app key in Keyboard Settings first.",
+                AiGatewayException.Kind.UNAUTHORIZED
+            ))
+        }
+        if (text.length > MAX_TEXT_CHARS) {
+            return Result.failure(AiGatewayException(
+                "Text is too long for AI. Select a shorter passage and try again.",
+                AiGatewayException.Kind.TOO_LONG
+            ))
+        }
         if (task == "livecheck" && System.currentTimeMillis() < coldUntilMs.get()) {
             return Result.failure(wakingUp())
         }
         return try {
             val body = JSONObject().put("task", task).put("text", text)
             val request = Request.Builder()
-                .url("$GATEWAY_BASE_URL/api/v1/$path")
+                .url("$gatewayBaseUrl/api/v1/$path")
                 .addHeader("X-App-Key", appKey)
                 .addHeader("content-type", "application/json")
                 .post(body.toString().toRequestBody(jsonMedia))
