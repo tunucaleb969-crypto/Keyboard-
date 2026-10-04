@@ -8,10 +8,7 @@ import org.junit.Test
 /**
  * Unit tests for LanguageDataValidator. Pure JVM, no Android framework/emulator needed.
  *
- * IMPORTANT: these were written and manually traced for correctness, but were NOT
- * actually executed — this environment has no JVM/Gradle/Android toolchain available to
- * run them. Run `./gradlew test` yourself to get a real pass/fail result; do not take
- * "the logic looks right on inspection" as equivalent to "tested and passing".
+ * These tests run in GitHub Actions as part of `gradle test --no-daemon`.
  */
 class LanguageDataValidatorTest {
 
