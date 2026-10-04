@@ -482,7 +482,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) {
-            toast("Add your API key in the AI Keyboard app first")
+            toast("Configure the AI gateway URL and app key in Keyboard Settings first")
             return
         }
         val before = ic.getTextBeforeCursor(4000, 0)?.toString().orEmpty()
