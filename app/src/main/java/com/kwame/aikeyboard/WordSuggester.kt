@@ -886,7 +886,7 @@ object WordSuggester {
     )
 
     fun suggest(prefix: String, limit: Int = 3): List<String> {
-        if (prefix.isBlank()) return emptyList()
+        if (prefix.isBlank() || limit <= 0) return emptyList()
         val lower = prefix.lowercase()
         return words.filter { it.startsWith(lower) && it != lower }.take(limit)
     }
