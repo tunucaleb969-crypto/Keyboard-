@@ -5,7 +5,7 @@ An Android input-method keyboard with local typing assistance and optional AI wr
 ## Current implementation
 
 - Android IME with QWERTY and symbols layouts.
-- Local word suggestions, learned next-word associations, autocorrection, dictionary/language-data import, emoji suggestions and clipboard history.
+- Local word suggestions, learned next-word associations, conservative offline typo/contraction correction, dictionary/language-data import, emoji suggestions and clipboard history.
 - Themes, typing, sound/vibration, layout, toolbar and voice-input settings.
 - AI writing actions routed through `backend/`; provider credentials stay on the server.
 - Backend supports Gemini and a configurable OpenAI-compatible provider adapter.
