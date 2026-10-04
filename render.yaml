@@ -17,3 +17,5 @@ services:
         sync: false             # Render asks you for this in the dashboard; never stored in git
       - key: APP_SHARED_SECRET
         generateValue: true     # Render creates a random secret; read it from Environment tab
+      # Optional alternate provider settings can be added in Render's Environment tab:
+      # AI_PROVIDER=openai-compatible, COMPATIBLE_API_KEY, COMPATIBLE_BASE_URL, COMPATIBLE_MODEL
