@@ -40,9 +40,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.json:json:20240303")
-    // Added for Phase 3 language-data tests (LanguageDataValidatorTest) — pure-JVM unit
-    // tests, no emulator needed. Note: the existing GitHub Actions workflow only runs
-    // assembleDebug, not test, so these won't run in CI until build.yml also runs
-    // ./gradlew test — flagging that rather than silently assuming it's covered.
+    // Pure-JVM regression tests run in GitHub Actions before APK assembly.
     testImplementation("junit:junit:4.13.2")
 }
