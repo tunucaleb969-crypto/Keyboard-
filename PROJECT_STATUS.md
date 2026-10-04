@@ -47,8 +47,8 @@ These are code-presence claims, not a claim that every feature has passed real-d
 1. Confirm the latest unit-test and APK-build runs; fix every reproducible failure.
 2. Test the live gateway end-to-end. The Android app must not claim AI is online merely because a URL is saved.
 3. Test the OpenAI-compatible adapter against a real selected provider; add additional provider adapters only after their API contracts and availability are verified. Never expose provider secrets in Android.
-4. Improve local prediction/correction quality with measured test cases for `pqste → paste`, `im → I'm`, capitalization, punctuation, Unicode, and false-positive avoidance.
-5. Add regression tests for sensitive fields, AI preview/cancel/stale results, learned bigrams, and dictionary imports. Gateway URL validation and the OpenAI-compatible adapter now have focused unit tests.
+4. Expand local prediction/correction quality with a larger measured typo test set covering capitalization, punctuation, Unicode, and false-positive avoidance. Initial focused tests now cover `pqste → paste` and common contraction fixes.
+5. Add regression tests for sensitive fields, AI preview/cancel/stale results, learned bigrams, and dictionary imports. Gateway URL validation, provider requests, local word suggestions, contraction expansion, and common typo correction have focused unit tests.
 6. Verify that AI/emoji/tone/clipboard workspaces occupy the key area and do not create a duplicate keyboard or displace the whole IME.
 7. Audit accessibility, privacy/retention controls, crash safety, cold-start latency, memory/battery use, and multilingual behavior on real devices.
 
