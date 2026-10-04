@@ -4,8 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.auth import verify_app_key
 from app.prompts import build_multi_prompt, build_single_prompt, parse_multi_result
-from app.providers.base import ProviderError
-from app.providers.gemini import GeminiProvider
+from app.providers.base import AIProvider, ProviderError
 from app.rate_limit import rate_limit
 from app.schemas import (
     CompleteRequest,
@@ -21,10 +20,8 @@ log = logging.getLogger("keyboard_api")
 router = APIRouter(prefix="/api/v1", dependencies=[Depends(verify_app_key), Depends(rate_limit)])
 
 
-def get_provider() -> GeminiProvider:
-    # Milestone 1: one provider, resolved from app state (set in main.py).
-    # A real registry/router replaces this call site in a later milestone
-    # without changing these route handlers.
+def get_provider() -> AIProvider:
+    # Resolve through the provider interface so route handlers stay provider-agnostic.
     from app.main import app_state
     return app_state["provider"]
 
