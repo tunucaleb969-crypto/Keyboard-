@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.providers.gemini import GeminiProvider
+from app.providers.openai_compatible import OpenAICompatibleProvider
 from app.routers.keyboard import router as keyboard_router
 
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +21,17 @@ async def startup() -> None:
     problems = settings.validate()
     for problem in problems:
         log.warning("Config problem: %s", problem)
-    app_state["provider"] = GeminiProvider(api_key=settings.gemini_api_key, model=settings.gemini_model)
+    if settings.ai_provider == "gemini":
+        provider = GeminiProvider(api_key=settings.gemini_api_key, model=settings.gemini_model)
+    elif settings.ai_provider == "openai-compatible":
+        provider = OpenAICompatibleProvider(
+            api_key=settings.compatible_api_key,
+            base_url=settings.compatible_base_url,
+            model=settings.compatible_model,
+        )
+    else:
+        raise RuntimeError("AI_PROVIDER must be gemini or openai-compatible")
+    app_state["provider"] = provider
 
 
 @app.on_event("shutdown")

@@ -66,6 +66,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private lateinit var clipboardPanel: View
     private lateinit var clipboardList: LinearLayout
     private lateinit var clipboardManager: ClipboardManager
+    private lateinit var clipboardChangeListener: ClipboardManager.OnPrimaryClipChangedListener
 
     private lateinit var emojiPanel: View
     private lateinit var emojiGrid: GridLayout
@@ -106,7 +107,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private var commaLongPressRunnable: Runnable? = null
 
     private val aiClient: AIClient
-        get() = AIClient(Prefs.getApiKey(this))
+        get() = AIClient(Prefs.getApiKey(this), Prefs.getGatewayUrl(this))
 
     private val audioManager by lazy { getSystemService(Context.AUDIO_SERVICE) as AudioManager }
     private val vibrator by lazy { getSystemService(Context.VIBRATOR_SERVICE) as Vibrator }
@@ -151,14 +152,17 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         root.findViewById<Button>(R.id.btnClipboard).setOnClickListener { toggleClipboardPanel() }
 
-        clipboardManager.addPrimaryClipChangedListener {
+        clipboardChangeListener = ClipboardManager.OnPrimaryClipChangedListener {
+            // Do not persist clipboard content while a sensitive field is focused.
+            // Clipboard contents may contain copied passwords or private one-time codes.
             val text = clipboardManager.primaryClip
                 ?.takeIf { it.itemCount > 0 }
                 ?.getItemAt(0)?.text?.toString()
-            if (!text.isNullOrBlank()) {
+            if (!isSensitiveField && !text.isNullOrBlank()) {
                 Prefs.addClip(this, text)
             }
         }
+        clipboardManager.addPrimaryClipChangedListener(clipboardChangeListener)
 
         emojiPanel = root.findViewById(R.id.emojiPanel)
         emojiGrid = root.findViewById(R.id.emojiGrid)
@@ -493,7 +497,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
         val ic = currentInputConnection ?: return
         if (Prefs.getApiKey(this).isBlank()) {
-            toast("Add your API key in the AI Keyboard app first")
+            toast("Configure the AI gateway URL and app key in Keyboard Settings first")
             return
         }
         val before = ic.getTextBeforeCursor(4000, 0)?.toString().orEmpty()
@@ -1248,6 +1252,9 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     override fun onDestroy() {
         super.onDestroy()
         debounceHandler.removeCallbacksAndMessages(null)
+        if (::clipboardManager.isInitialized && ::clipboardChangeListener.isInitialized) {
+            clipboardManager.removePrimaryClipChangedListener(clipboardChangeListener)
+        }
         // Cancels any in-flight AI request (grammar/tone/livecheck) — without this, a
         // network call could keep running and eventually try to touch a dead
         // InputConnection, wasting battery/network for no visible result.

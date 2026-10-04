@@ -9,6 +9,10 @@ asks the model to do.
 No model router, no multiple providers, no teacher system, no training
 pipeline. Those are later milestones once this foundation is in place.
 
+## Provider configuration
+
+Gemini is the default provider. The gateway also supports an OpenAI-compatible chat-completions endpoint, configurable entirely on the server. To switch, set `AI_PROVIDER=openai-compatible`, `COMPATIBLE_API_KEY`, `COMPATIBLE_BASE_URL` (the API root, usually ending in `/v1`), and `COMPATIBLE_MODEL`. The selected host must actually support the OpenAI-compatible `/chat/completions` API. Pricing/free-tier limits are controlled by that host; this adapter does not imply a provider is free. Never place provider keys in the Android app or repository.
+
 ## Endpoints
 - `POST /api/v1/complete` - `{task, text}` -> `{result, provider, model}`
   (grammar, explain, cv, business, livecheck)

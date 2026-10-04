@@ -52,7 +52,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Paste your NVIDIA API key"
+                android:text="Gateway app key (APP_SHARED_SECRET)"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:layout_marginBottom="8dp" />
@@ -60,13 +60,40 @@
                 android:id="@+id/editApiKey"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="nvapi-..."
+                android:hint="Paste the gateway app key"
                 android:textColorHint="@color/text_secondary"
                 android:textColor="@color/text_primary"
                 android:background="@drawable/chip_background"
                 android:padding="12dp"
                 android:inputType="textPassword" />
-            <Button android:id="@+id/btnSaveKey" style="@style/PrimaryButton" android:layout_marginTop="12dp" android:text="Save key" />
+            <Button android:id="@+id/btnSaveKey" style="@style/PrimaryButton" android:layout_marginTop="12dp" android:text="Save app key" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="AI gateway URL"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+            <EditText
+                android:id="@+id/editGatewayUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="https://your-service.onrender.com"
+                android:inputType="textUri"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary"
+                android:background="@drawable/chip_background"
+                android:padding="12dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Use the public URL of your deployed AI gateway. Do not enter your Gemini key here; it belongs on the server only."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+            <Button android:id="@+id/btnSaveGatewayUrl" style="@style/PrimaryButton" android:layout_marginTop="10dp" android:text="Save gateway URL" />
         </LinearLayout>
 
         <TextView style="@style/SettingsSectionTitle" android:text="PERSONALIZE" />
