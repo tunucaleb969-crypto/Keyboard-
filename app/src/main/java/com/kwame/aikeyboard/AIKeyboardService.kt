@@ -103,7 +103,7 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private var commaLongPressRunnable: Runnable? = null
 
     private val aiClient: AIClient
-        get() = AIClient(Prefs.getApiKey(this))
+        get() = AIClient(Prefs.getApiKey(this), Prefs.getGatewayUrl(this))
 
     private val audioManager by lazy { getSystemService(Context.AUDIO_SERVICE) as AudioManager }
     private val vibrator by lazy { getSystemService(Context.VIBRATOR_SERVICE) as Vibrator }
