@@ -8,6 +8,7 @@ An Android input-method keyboard with local typing assistance and optional AI wr
 - Local word suggestions, learned next-word associations, autocorrection, dictionary/language-data import, emoji suggestions and clipboard history.
 - Themes, typing, sound/vibration, layout, toolbar and voice-input settings.
 - AI writing actions routed through `backend/`; provider credentials stay on the server.
+- Backend supports Gemini and a configurable OpenAI-compatible provider adapter.
 - Automated Kotlin and backend tests, plus a GitHub Actions debug-APK build.
 
 See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for verified-vs-unverified status and remaining milestones. Features listed here still require real-device checks before being described as production-ready.
