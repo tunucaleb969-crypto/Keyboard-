@@ -17,6 +17,8 @@ class SettingsActivity : AppCompatActivity() {
 
         val editKey = findViewById<EditText>(R.id.editApiKey)
         editKey.setText(Prefs.getApiKey(this))
+        val editGatewayUrl = findViewById<EditText>(R.id.editGatewayUrl)
+        editGatewayUrl.setText(Prefs.getGatewayUrl(this))
 
         findViewById<Button>(R.id.btnEnableKeyboard).setOnClickListener {
             startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
@@ -31,7 +33,19 @@ class SettingsActivity : AppCompatActivity() {
             val cleanKey = editKey.text.toString().replace(Regex("[^\\x21-\\x7E]"), "")
             Prefs.setApiKey(this, cleanKey)
             editKey.setText(cleanKey)
-            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Gateway app key saved", Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById<Button>(R.id.btnSaveGatewayUrl).setOnClickListener {
+            val url = editGatewayUrl.text.toString().trim().trimEnd('/')
+            val valid = url.startsWith("https://") || url.startsWith("http://10.0.2.2")
+            if (!valid || url.any { it.isWhitespace() }) {
+                editGatewayUrl.error = "Enter a valid HTTPS gateway URL"
+                return@setOnClickListener
+            }
+            Prefs.setGatewayUrl(this, url)
+            editGatewayUrl.setText(url)
+            Toast.makeText(this, "Gateway URL saved", Toast.LENGTH_SHORT).show()
         }
 
         findViewById<LinearLayout>(R.id.rowTyping).setOnClickListener {
