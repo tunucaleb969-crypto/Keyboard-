@@ -21,8 +21,10 @@ object CommonTypoCorrector {
 
     fun correct(word: String): String? {
         val corrected = corrections[word.lowercase()] ?: return null
-        return if (word.firstOrNull()?.isUpperCase() == true) {
-            corrected.replaceFirstChar { it.uppercaseChar() }
-        } else corrected
+        return when {
+            word.all { it.isUpperCase() } -> corrected.uppercase()
+            word.firstOrNull()?.isUpperCase() == true -> corrected.replaceFirstChar { it.uppercaseChar() }
+            else -> corrected
+        }
     }
 }
