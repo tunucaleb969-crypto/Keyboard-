@@ -6,7 +6,7 @@ import java.net.URI
 object GatewayUrlValidator {
     fun isValid(value: String): Boolean {
         val candidate = value.trim()
-        if (candidate.isEmpty() || candidate.any { it.isWhitespace() }) return false
+        if (candidate.isEmpty() || candidate.any { it.isWhitespace() } || candidate.contains("REPLACE-WITH", ignoreCase = true)) return false
         return try {
             val uri = URI(candidate)
             val scheme = uri.scheme?.lowercase() ?: return false
