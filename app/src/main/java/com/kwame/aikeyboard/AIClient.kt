@@ -67,14 +67,15 @@ class AIClient(private val appKey: String, gatewayBaseUrl: String) {
          * Fire-and-forget request to /healthz that wakes a sleeping server.
          * Safe to call often: it does nothing if it ran in the last 30 seconds.
          */
-        fun warmUp() {
+        fun warmUp(baseUrl: String) {
+            if (baseUrl.isBlank()) return
             val now = System.currentTimeMillis()
             val last = lastWarmUpMs.get()
             if (now - last < WARM_UP_MIN_GAP_MS) return
             if (!lastWarmUpMs.compareAndSet(last, now)) return
             warmUpScope.launch {
                 try {
-                    val request = Request.Builder().url("$gatewayBaseUrl/healthz").get().build()
+                    val request = Request.Builder().url("${baseUrl.trimEnd('/')}/healthz").get().build()
                     warmUpClient.newCall(request).execute().use { response ->
                         if (response.isSuccessful) coldUntilMs.set(0L)
                     }
@@ -92,7 +93,7 @@ class AIClient(private val appKey: String, gatewayBaseUrl: String) {
 
     private fun markCold() {
         coldUntilMs.set(System.currentTimeMillis() + COLD_WINDOW_MS)
-        warmUp()
+        warmUp(gatewayBaseUrl)
     }
 
     private fun httpError(code: Int, raw: String): AiGatewayException {
