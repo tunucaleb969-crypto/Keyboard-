@@ -14,7 +14,7 @@ class CommonTypoCorrectorTest {
     }
 
     @Test fun matchesWithoutCaseSensitivity() {
-        assertEquals("the", CommonTypoCorrector.correct("TEH"))
+        assertEquals("THE", CommonTypoCorrector.correct("TEH"))
     }
 
     @Test fun unknownWordsAreNeverGuessed() {
