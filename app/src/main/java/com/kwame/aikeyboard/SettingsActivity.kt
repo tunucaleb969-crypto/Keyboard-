@@ -38,7 +38,7 @@ class SettingsActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnSaveGatewayUrl).setOnClickListener {
             val url = editGatewayUrl.text.toString().trim().trimEnd('/')
-            val valid = url.startsWith("https://") || url.startsWith("http://10.0.2.2")
+            val valid = GatewayUrlValidator.isValid(url)
             if (!valid || url.any { it.isWhitespace() }) {
                 editGatewayUrl.error = "Enter a valid HTTPS gateway URL"
                 return@setOnClickListener
