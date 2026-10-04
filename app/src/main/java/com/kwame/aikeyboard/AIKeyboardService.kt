@@ -787,6 +787,14 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         if (word.lowercase() in ignoredWords) return
         if (!word.any { it.isLetter() }) return
 
+        // Conservative local typo fixes run before network-dependent correction.
+        // Unknown words are left untouched by this table.
+        val commonCorrection = CommonTypoCorrector.correct(word)
+        if (commonCorrection != null && !commonCorrection.equals(word, ignoreCase = true)) {
+            applyLiveCheckCorrection(word, commonCorrection)
+            return
+        }
+
         // Fast, local, offline contraction fix (e.g. "dont" -> "don't") — no AI needed.
         val expanded = ContractionExpander.expand(word)
         if (expanded != null) {
