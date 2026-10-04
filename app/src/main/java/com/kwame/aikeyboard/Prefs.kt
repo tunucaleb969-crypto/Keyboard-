@@ -5,6 +5,7 @@ import android.content.Context
 object Prefs {
     private const val FILE = "ai_keyboard_prefs"
     private const val KEY_API = "api_key"
+    private const val KEY_GATEWAY_URL = "ai_gateway_url"
     private const val KEY_SOUND = "key_sound"
     private const val KEY_VIBRATE = "key_vibrate"
     private const val KEY_AUTOCAP = "auto_capitalize"
@@ -60,6 +61,15 @@ object Prefs {
     fun setApiKey(context: Context, value: String) {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
             .edit().putString(KEY_API, value).apply()
+    }
+
+    /** Optional self-hosted/Render gateway URL; blank means AI is not configured. */
+    fun getGatewayUrl(context: Context): String =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).getString(KEY_GATEWAY_URL, "")?.trim().orEmpty()
+
+    fun setGatewayUrl(context: Context, value: String) {
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+            .edit().putString(KEY_GATEWAY_URL, value.trim().trimEnd('/')).apply()
     }
 
     fun getSoundEnabled(context: Context): Boolean =
