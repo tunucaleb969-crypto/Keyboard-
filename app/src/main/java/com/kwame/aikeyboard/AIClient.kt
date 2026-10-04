@@ -126,7 +126,7 @@ class AIClient(private val appKey: String, gatewayBaseUrl: String) {
     }
 
     private fun post(path: String, task: String, text: String): Result<JSONObject> {
-        if (gatewayBaseUrl.isBlank() || !(gatewayBaseUrl.startsWith("https://") || gatewayBaseUrl.startsWith("http://10.0.2.2"))) {
+        if (!GatewayUrlValidator.isValid(gatewayBaseUrl)) {
             return Result.failure(AiGatewayException(
                 "Set the HTTPS AI gateway URL in Keyboard Settings first.",
                 AiGatewayException.Kind.SERVER
