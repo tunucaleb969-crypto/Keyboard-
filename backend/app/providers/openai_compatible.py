@@ -14,7 +14,7 @@ class OpenAICompatibleProvider(AIProvider):
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
         self._model = model
-        self._client = httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=25.0))
+        self._client = httpx.AsyncClient(timeout=httpx.Timeout(25.0, connect=10.0))
 
     async def generate(self, prompt: str, max_output_tokens: int = 500) -> str:
         if not self._api_key or not self._base_url or not self._model:
