@@ -1,11 +1,12 @@
 package com.kwame.aikeyboard
 
 import android.content.Context
+import com.kwame.aikeyboard.language.DictionaryRepository
 
 object NextWordPredictor {
     // Maps a word to its most likely next words, based on common English phrase patterns.
     // This is the fixed fallback list; personal learned associations (see Prefs.recordBigram)
-    // are ranked ahead of these since they reflect how this specific user actually writes.
+    // and bundled database bigrams (see DictionaryRepository) are both ranked ahead of these.
     private val predictions = mapOf(
         "how" to listOf("are", "do", "much"),
         "thank" to listOf("you"),
@@ -44,18 +45,19 @@ object NextWordPredictor {
     )
 
     /**
-     * Predicts likely next words given [previousWord]. Personal words this user has
-     * actually typed after [previousWord] (see [Prefs.recordBigram]) are ranked first,
-     * most-used first, then padded out with the fixed built-in list. Respects the
-     * "next word learning" toggle so a user who disables learning falls back to the
-     * static list only.
+     * Predicts likely next words given [previousWord]. Ranked: personal words this user
+     * has actually typed after [previousWord] (see [Prefs.recordBigram]) first, then
+     * bundled database bigrams (see [DictionaryRepository]), then the fixed built-in list.
+     * Respects the "next word learning" toggle, which gates the personal-learned source
+     * only — bundled database/static data isn't personal, so it's unaffected by that toggle.
      */
     fun predict(context: Context, previousWord: String): List<String> {
         if (previousWord.isBlank()) return emptyList()
         val learned = if (Prefs.getNextWordLearningEnabled(context)) {
             Prefs.getLearnedNextWords(context, previousWord)
         } else emptyList()
+        val databaseBigrams = DictionaryRepository.get(context).bigramsFor(previousWord).map { it.nextWord }
         val builtIn = predictions[previousWord.lowercase()] ?: emptyList()
-        return (learned + builtIn).distinct().take(3)
+        return (learned + databaseBigrams + builtIn).distinct().take(3)
     }
 }
