@@ -14,12 +14,34 @@ class SqliteLanguageDataProvider(context: Context) : LanguageDataProvider {
     private val dbHelper = DictionaryDbHelper(context)
 
     /**
-     * Prefix search implemented as an index range scan (normalized >= prefix AND
-     * normalized < prefix + U+FFFF) rather than LIKE 'prefix%'. In SQLite, LIKE is
-     * case-insensitive by default and can only use an index if the column was declared
-     * COLLATE NOCASE — ours is plain BINARY — so LIKE would silently degrade to a full
-     * table scan on every keystroke as the dictionary grows. A range comparison on the
-     * BINARY-collated, already-lowercased column uses idx_words_normalized directly.
+     * Exclusive upper bound for a "starts with [prefix]" range scan: the prefix with its
+     * last Unicode code point incremented by one. Any string "prefix" + anything sorts
+     * below this, regardless of what the continuation is — including supplementary-plane
+     * characters (emoji, some scripts), which a naive "prefix + U+FFFF" bound gets wrong:
+     * UTF-8 encodes codepoints above U+FFFF with a leading byte (0xF0+) that is numerically
+     * greater than U+FFFF's own leading bytes, so such words would sort past a fixed
+     * U+FFFF suffix and be silently excluded. Incrementing the actual last code point
+     * avoids the whole class of bug instead of picking a "high enough" fixed suffix.
+     */
+    private fun exclusiveUpperBoundFor(prefix: String): String {
+        val codePoints = prefix.codePoints().toArray()
+        if (codePoints.isEmpty()) return prefix
+        val lastIndex = codePoints.size - 1
+        if (codePoints[lastIndex] >= Character.MAX_CODE_POINT) {
+            // Last character is already the maximum possible code point (never happens with
+            // real typed text) — fall back to appending a sentinel rather than overflow.
+            return prefix + "\uFFFF"
+        }
+        codePoints[lastIndex] = codePoints[lastIndex] + 1
+        return String(codePoints, 0, codePoints.size)
+    }
+
+    /**
+     * Prefix search implemented as an index range scan rather than LIKE 'prefix%'. In
+     * SQLite, LIKE is case-insensitive by default and can only use an index if the column
+     * was declared COLLATE NOCASE — ours is plain BINARY — so LIKE would silently degrade
+     * to a full table scan on every keystroke as the dictionary grows. A range comparison
+     * on the BINARY-collated, already-lowercased column uses idx_words_normalized directly.
      *
      * KNOWN LIMITATION (not benchmarked): ORDER BY frequency DESC still has to sort every
      * row matching the prefix before LIMIT applies, so very short prefixes (1-2 letters)
@@ -29,7 +51,7 @@ class SqliteLanguageDataProvider(context: Context) : LanguageDataProvider {
     override fun wordsStartingWith(prefix: String, limit: Int): List<WordEntry> {
         if (prefix.isBlank()) return emptyList()
         val lower = prefix.lowercase()
-        val upper = lower + "\uFFFF"
+        val upper = exclusiveUpperBoundFor(lower)
         val db = dbHelper.readableDatabase
         val cursor = db.rawQuery(
             "SELECT word, frequency, category FROM words " +
