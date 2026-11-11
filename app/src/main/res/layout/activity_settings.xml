@@ -52,7 +52,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Paste your NVIDIA API key"
+                android:text="Paste your Gemini API key (from aistudio.google.com/apikey)"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:layout_marginBottom="8dp" />
@@ -60,13 +60,22 @@
                 android:id="@+id/editApiKey"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="nvapi-..."
+                android:hint="AIza..."
                 android:textColorHint="@color/text_secondary"
                 android:textColor="@color/text_primary"
                 android:background="@drawable/chip_background"
                 android:padding="12dp"
                 android:inputType="textPassword" />
             <Button android:id="@+id/btnSaveKey" style="@style/PrimaryButton" android:layout_marginTop="12dp" android:text="Save key" />
+            <Button android:id="@+id/btnTestKey" style="@style/PrimaryButton" android:layout_marginTop="10dp" android:text="Test key" />
+            <TextView
+                android:id="@+id/txtKeyStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:visibility="gone" />
         </LinearLayout>
 
         <TextView style="@style/SettingsSectionTitle" android:text="PERSONALIZE" />
