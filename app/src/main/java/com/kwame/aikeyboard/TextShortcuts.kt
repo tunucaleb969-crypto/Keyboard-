@@ -118,6 +118,9 @@ object TextShortcuts {
     private const val KEY_LIST = "shortcuts_json"
     private const val KEY_ENABLED = "shortcuts_enabled"
 
+    // In-memory copy so typing never re-parses JSON on every space press.
+    @Volatile private var cache: List<TextShortcut>? = null
+
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
@@ -129,6 +132,13 @@ object TextShortcuts {
     }
 
     fun getAll(context: Context): List<TextShortcut> {
+        cache?.let { return it }
+        val loaded = load(context)
+        cache = loaded
+        return loaded
+    }
+
+    private fun load(context: Context): List<TextShortcut> {
         val raw = prefs(context).getString(KEY_LIST, "") ?: ""
         if (raw.isBlank()) return emptyList()
         return try {
@@ -154,6 +164,7 @@ object TextShortcuts {
             arr.put(JSONObject().put("t", s.trigger).put("e", s.expansion).put("on", s.enabled))
         }
         prefs(context).edit().putString(KEY_LIST, arr.toString()).apply()
+        cache = list.toList()
     }
 
     @Synchronized
@@ -185,5 +196,6 @@ object TextShortcuts {
 
     fun clearAll(context: Context) {
         prefs(context).edit().remove(KEY_LIST).apply()
+        cache = null
     }
 }
