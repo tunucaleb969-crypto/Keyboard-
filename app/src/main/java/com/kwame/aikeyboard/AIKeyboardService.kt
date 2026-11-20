@@ -87,6 +87,10 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
     private var lastAiOriginalAfter: String = ""
     private var lastAiResultText: String = ""
 
+    // Text shortcuts (Phase 15): remembers the last expansion so one backspace undoes it.
+    private var lastShortcutTrigger: String = ""
+    private var lastShortcutExpansion: String = ""
+
     // Incremented on every new AI request. Async results only get applied if
     // this still matches at completion time — so if the user cancels (or
     // fires a newer request) while an old one is still in flight, the stale
@@ -903,6 +907,52 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         return true
     }
 
+    /**
+     * Text shortcuts (Phase 15): when the user has just typed a whole-word trigger and pressed
+     * space (e.g. "gm "), swaps it for the saved expansion. Never runs in sensitive fields.
+     * Returns true if an expansion happened.
+     */
+    private fun tryExpandShortcut(ic: InputConnection): Boolean {
+        if (isSensitiveField) return false
+        if (!TextShortcuts.isEnabled(this)) return false
+        val before = ic.getTextBeforeCursor(TextShortcutLogic.MAX_TRIGGER_LENGTH + 2, 0)?.toString().orEmpty()
+        if (!before.endsWith(" ")) return false
+        // Whole word only: take everything after the last whitespace. If it is longer than the
+        // longest allowed trigger it is just the tail of a longer word, so it can never match.
+        val token = before.dropLast(1).takeLastWhile { !it.isWhitespace() }
+        if (token.isEmpty() || token.length > TextShortcutLogic.MAX_TRIGGER_LENGTH) return false
+        val expansion = TextShortcuts.expansionFor(this, token) ?: return false
+
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(token.length + 1, 0)
+        ic.commitText("$expansion ", 1)
+        ic.endBatchEdit()
+
+        lastShortcutTrigger = token
+        lastShortcutExpansion = expansion
+        // The newest action owns the next backspace, so drop older undo states.
+        lastCorrectionOriginal = ""
+        lastCorrectionResult = ""
+        lastAiResultText = ""
+        return true
+    }
+
+    /** One backspace right after an expansion restores what the user typed (e.g. "gm "). */
+    private fun tryUndoShortcut(ic: InputConnection): Boolean {
+        if (lastShortcutExpansion.isEmpty()) return false
+        val expected = lastShortcutExpansion + " "
+        val before = ic.getTextBeforeCursor(expected.length, 0)?.toString().orEmpty()
+        if (before != expected) return false
+
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(expected.length, 0)
+        ic.commitText(lastShortcutTrigger + " ", 1)
+        ic.endBatchEdit()
+        lastShortcutTrigger = ""
+        lastShortcutExpansion = ""
+        return true
+    }
+
     private fun autoUnshift() {
         if (capsOn && !shiftLocked) {
             capsOn = false
@@ -962,6 +1012,11 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
         }
         ic.commitText(" ", 1)
         wordButtons.forEach { it.visibility = View.GONE }
+        if (tryExpandShortcut(ic)) {
+            maybeAutoCapitalize(ic)
+            updateWordSuggestions()
+            return
+        }
         recordCompletedWordBigram(ic)
         checkLastWordNow()
         maybeAutoCapitalize(ic)
@@ -1059,10 +1114,13 @@ class AIKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionLis
             return
         }
 
+        // Any new character (other than space) ends the window where backspace can undo a shortcut expansion.
+        if (primaryCode > 0 && primaryCode != 32) lastShortcutExpansion = ""
+
         when (primaryCode) {
             Keyboard.KEYCODE_DELETE -> {
                 playKeyFeedback(isRepeatedAction = true)
-                if (!tryUndoAutocorrect(ic) && !tryUndoAiReplacement(ic)) {
+                if (!tryUndoShortcut(ic) && !tryUndoAutocorrect(ic) && !tryUndoAiReplacement(ic)) {
                     val selected = ic.getSelectedText(0)
                     if (!selected.isNullOrEmpty()) {
                         ic.commitText("", 1)
